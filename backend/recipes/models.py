@@ -49,10 +49,10 @@ class Recipe(models.Model):
         verbose_name='Автор рецепта',
         null=True,
         on_delete=models.SET_NULL,
-        verbose_name='Автор',
         related_name='recipes'
     )
-    cooking_time = models.IntegerField(verbose_name='Время приготовления')
+    cooking_time = models.IntegerField(verbose_name='Время приготовления',
+                                       default=0)
     ingredients = models.ManyToManyField(
         Ingredient,
         verbose_name='Ингридиенты для приготовления блюда',
@@ -87,14 +87,15 @@ class IngredientAmount(models.Model):
     ingredient = models.ForeignKey(
         Ingredient,
         verbose_name='К какому ингредиенту относится',
-        related_name='ingredient_amount'
+        related_name='ingredient_amount',
+        on_delete=models.CASCADE
     )
 
     class Meta:
         verbose_name = 'Количество ингредиента'
         verbose_name_plural = 'Количество ингредиентов'
         ordering = ['recipe']
-        constrains = [
+        constraints = [
             models.UniqueConstraint(
                 fields=['recipe', 'ingredient'],
                 name='unique_ingredient_in_recipe',
