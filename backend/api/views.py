@@ -15,4 +15,11 @@ class UserViewSet(DjoserUserViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
     pagination_class = PageNumberPagination
-    permission_classes = [permissions.AllowAny]
+    #permission_classes = [permissions.AllowAny]
+
+    def get_permissions(self):
+        """Дает доступ к эндпоинту /me/ только
+            аутентифицированным пользователям"""
+        if self.action == 'me':
+            return [permissions.IsAuthenticated()]
+        return [permissions.AllowAny()]
