@@ -1,5 +1,5 @@
 from djoser.serializers import UserSerializer as BaseUserSerializer
-from recipes.models import Ingredient, Tag, User
+from recipes.models import Ingredient, IngredientAmount, Recipe, Tag, User
 from rest_framework import serializers
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
 
@@ -37,3 +37,15 @@ class IngredientSerializer(serializers.ModelSerializer):
         model = Ingredient
         fields = '__all__'
         read_only_fields = ['__all__']
+
+
+class RecipeSerializer(serializers.ModelSerializer):
+    """Сериализатор для рецептов."""
+    author = UserSerializer(read_only=True)
+    ingredients = IngredientSerializer(many=True, read_only=True)
+    tags = TagSerializer(many=True, read_only=True)
+    
+    class Meta:
+        model = Recipe
+        fields = '__all__'
+

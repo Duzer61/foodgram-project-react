@@ -1,12 +1,13 @@
 from django.conf import settings
 from django.shortcuts import render
 from djoser.views import UserViewSet as DjoserUserViewSet
-from recipes.models import Ingredient, Tag, User
+from recipes.models import Ingredient, Recipe, Tag, User
 from rest_framework import filters, permissions, serializers, status, viewsets
 from rest_framework.decorators import action, permission_classes
 from rest_framework.pagination import PageNumberPagination
 
-from .serializers import IngredientSerializer, TagSerializer, UserSerializer
+from .serializers import (IngredientSerializer, RecipeSerializer,
+                          TagSerializer, UserSerializer)
 
 
 class UserViewSet(DjoserUserViewSet):
@@ -45,3 +46,10 @@ class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
 
 class RecipeViewSet(viewsets.ModelViewSet):
     """Вьюсет для работы с рецептами."""
+    serializer_class = RecipeSerializer
+    queryset = (
+        Recipe.objects.select_related('author')
+        .prefetch_related('ingredients', 'tags').all()
+    )
+    
+    
