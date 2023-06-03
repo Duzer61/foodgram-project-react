@@ -20,13 +20,13 @@ class Ingredient(models.Model):
 class Tag(models.Model):
     """Модель тегов для рецепта"""
     name = models.CharField(verbose_name='Название тега',
-                            max_length=16,
+                            max_length=200,
                             unique=True)
     color = models.CharField(verbose_name='Цвет тега',
                              max_length=7,
                              unique=True)
     slug = models.SlugField(verbose_name='Слаг тега',
-                            max_length=16,
+                            max_length=200,
                             unique=True)
 
     class Meta:
