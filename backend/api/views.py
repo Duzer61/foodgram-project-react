@@ -1,12 +1,12 @@
 from django.conf import settings
 from django.shortcuts import render
 from djoser.views import UserViewSet as DjoserUserViewSet
-from recipes.models import Tag, User
+from recipes.models import Ingredient, Tag, User
 from rest_framework import filters, permissions, serializers, status, viewsets
 from rest_framework.decorators import action, permission_classes
 from rest_framework.pagination import PageNumberPagination
 
-from .serializers import TagSerializer, UserSerializer
+from .serializers import IngredientSerializer, TagSerializer, UserSerializer
 
 
 class UserViewSet(DjoserUserViewSet):
@@ -31,4 +31,14 @@ class TagViewSet(viewsets.ModelViewSet):
     serializer_class = TagSerializer
     queryset = Tag.objects.all()
     pagination_class = None
+
+
+class IngredientViewSet(viewsets.ModelViewSet):
+    """Вьюсет для работы с ингредиентами."""
+    http_method_names = ['get']
+    serializer_class = IngredientSerializer
+    queryset = Ingredient.objects.all()
+    pagination_class = None
+    filter_backends = (filters.SearchFilter,)
+    search_fields = ('^name',)
 
