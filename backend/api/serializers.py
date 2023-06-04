@@ -39,15 +39,15 @@ class IngredientSerializer(serializers.ModelSerializer):
         read_only_fields = ['__all__']
 
 
-class RecipeSerializer(serializers.ModelSerializer):
-    """Сериализатор для рецептов."""
+class RecipeReadSerializer(serializers.ModelSerializer):
+    """Сериализатор для чтения рецептов."""
     author = UserSerializer(read_only=True)
     ingredients = serializers.SerializerMethodField()
     tags = TagSerializer(many=True, read_only=True)
     
     class Meta:
         model = Recipe
-        fields = '__all__'
+        exclude = ['pub_date']
 
     def get_ingredients(self, recipe):
         """Получает ингредиенты для рецепта."""
@@ -55,3 +55,24 @@ class RecipeSerializer(serializers.ModelSerializer):
             'id', 'name', 'measurement_unit', 'ingredient_amount__amount'
         )
         return ingredients
+
+
+class RecipeIngredientSerializer(serializers.ModelSerializer):
+    """Сериализатор для записи ингредиентов в рецепт."""
+    id = serializers.IntegerField(write_only=True)
+
+    class Meta:
+        model = IngredientAmount
+        fields = ('id', 'amount')
+
+
+class RecipeWriteSerializer(serializers.ModelSerializer):
+    """Сериализатор для добавления и изменения рецептов."""
+    author = UserSerializer(read_only=True)
+    tags = serializers.PrimaryKeyRelatedField(queryset=Tag.objects.all(),
+                                              many=True)
+    ingredients = RecipeIngredientSerializer(many=True)
+
+    class Meta:
+        model = Recipe
+        fields = '__all__'

@@ -6,8 +6,8 @@ from rest_framework import filters, permissions, serializers, status, viewsets
 from rest_framework.decorators import action, permission_classes
 from rest_framework.pagination import PageNumberPagination
 
-from .serializers import (IngredientSerializer, RecipeSerializer,
-                          TagSerializer, UserSerializer)
+from .serializers import (IngredientSerializer, RecipeReadSerializer,
+                          RecipeWriteSerializer, TagSerializer, UserSerializer)
 
 
 class UserViewSet(DjoserUserViewSet):
@@ -46,8 +46,17 @@ class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
 
 class RecipeViewSet(viewsets.ModelViewSet):
     """Вьюсет для работы с рецептами."""
-    serializer_class = RecipeSerializer
+    # serializer_class = RecipeSerializer
     queryset = (
         Recipe.objects.select_related('author')
         .prefetch_related('ingredients', 'tags').all()
     )
+
+    def perform_create(self, serializer):
+        serializer.save(author=self.request.user)
+
+    def get_serializer_class(self):
+        if self.action in ('list', 'retrieve'):
+            return RecipeReadSerializer
+        return RecipeWriteSerializer
+
