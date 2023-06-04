@@ -30,7 +30,7 @@ class Tag(models.Model):
                             unique=True)
 
     class Meta:
-        verbose_name = ' Тег',
+        verbose_name = 'Тег',
         verbose_name_plural = 'Теги'
         ordering = ['name']
 
@@ -55,6 +55,7 @@ class Recipe(models.Model):
                                        default=0)
     ingredients = models.ManyToManyField(
         Ingredient,
+        through='IngredientAmount',
         verbose_name='Ингридиенты для приготовления блюда',
         related_name='recipes'
     )
@@ -75,9 +76,6 @@ class Recipe(models.Model):
 
 class IngredientAmount(models.Model):
     """Модель для привязки количества ингредиента к рецепту"""
-    amount = models.IntegerField(
-        verbose_name='Количество ингредиента в рецепте'
-    )
     recipe = models.ForeignKey(
         Recipe,
         verbose_name='К какому рецепту относится',
@@ -89,6 +87,9 @@ class IngredientAmount(models.Model):
         verbose_name='К какому ингредиенту относится',
         related_name='ingredient_amount',
         on_delete=models.CASCADE
+    )
+    amount = models.IntegerField(
+        verbose_name='Количество ингредиента в рецепте'
     )
 
     class Meta:

@@ -42,10 +42,16 @@ class IngredientSerializer(serializers.ModelSerializer):
 class RecipeSerializer(serializers.ModelSerializer):
     """Сериализатор для рецептов."""
     author = UserSerializer(read_only=True)
-    ingredients = IngredientSerializer(many=True, read_only=True)
+    ingredients = serializers.SerializerMethodField()
     tags = TagSerializer(many=True, read_only=True)
     
     class Meta:
         model = Recipe
         fields = '__all__'
 
+    def get_ingredients(self, recipe):
+        """Получает ингредиенты для рецепта."""
+        ingredients = recipe.ingredients.values(
+            'id', 'name', 'measurement_unit', 'ingredient_amount__amount'
+        )
+        return ingredients
