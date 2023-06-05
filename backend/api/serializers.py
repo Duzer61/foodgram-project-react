@@ -71,8 +71,14 @@ class RecipeWriteSerializer(serializers.ModelSerializer):
     author = UserSerializer(read_only=True)
     tags = serializers.PrimaryKeyRelatedField(queryset=Tag.objects.all(),
                                               many=True)
+    #ingredients = serializers.SerializerMethodField()
     ingredients = RecipeIngredientSerializer(many=True)
 
     class Meta:
         model = Recipe
         fields = '__all__'
+    
+    def get_ingredients(self, recipe):
+        """Получает ингредиенты для рецепта."""
+        ingredients = (recipe.id, 'id', 'amount')
+        return ingredients
