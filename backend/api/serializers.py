@@ -1,3 +1,5 @@
+from django.db.models import F
+from django.shortcuts import get_object_or_404
 from djoser.serializers import UserSerializer as BaseUserSerializer
 from recipes.models import Ingredient, IngredientAmount, Recipe, Tag, User
 from rest_framework import serializers
@@ -52,33 +54,64 @@ class RecipeReadSerializer(serializers.ModelSerializer):
     def get_ingredients(self, recipe):
         """Получает ингредиенты для рецепта."""
         ingredients = recipe.ingredients.values(
-            'id', 'name', 'measurement_unit', 'ingredient_amount__amount'
+            'id', 'name', 'measurement_unit',
+            amount=F('ingredient_amount__amount')
         )
         return ingredients
 
 
-class RecipeIngredientSerializer(serializers.ModelSerializer):
-    """Сериализатор для записи ингредиентов в рецепт."""
+#class IngredientAmountReadSerializer(serializers.ModelSerializer):
+#    id = serializers.IntegerField(source='ingredient.id')
+#    name = serializers.CharField(source='ingredient.name')
+#    measurement_unit = serializers.CharField(
+#        source='ingredient.measurement_unit'
+#    )
+#
+#    class Meta:
+#        model = IngredientAmount
+#        fields = ['id', 'name', 'measurement_unit', 'amount']
+
+
+class IngredeintAmountWriteSerializer(serializers.ModelSerializer):
+    """Сериализатор для записи ингредиента и количества в рецепт."""
     id = serializers.IntegerField(write_only=True)
+    amount = serializers.IntegerField(write_only=True)
 
     class Meta:
-        model = IngredientAmount
+        model = Ingredient
         fields = ('id', 'amount')
 
 
 class RecipeWriteSerializer(serializers.ModelSerializer):
     """Сериализатор для добавления и изменения рецептов."""
-    author = UserSerializer(read_only=True)
+    author = serializers.HiddenField(default=serializers.CurrentUserDefault())
     tags = serializers.PrimaryKeyRelatedField(queryset=Tag.objects.all(),
                                               many=True)
-    #ingredients = serializers.SerializerMethodField()
-    ingredients = RecipeIngredientSerializer(many=True)
+    ingredients = IngredeintAmountWriteSerializer(many=True)
 
     class Meta:
         model = Recipe
-        fields = '__all__'
+        fields = [
+            'ingredients', 'tags', 'name', 'text', 'cooking_time', 'author'
+        ]
     
-    # def get_ingredients(self, recipe):
-    #     """Получает ингредиенты для рецепта."""
-    #     ingredients = (recipe.id, 'id', 'amount')
-    #     return ingredients
+    #def get_ingredients(self, obj):
+    #    ingredients = IngredientAmount.objects.filter(recipe=obj)
+    #    return IngredientAmountReadSerializer(ingredients).data
+    
+    def create(self, validated_data):
+        ingredients_data = validated_data.pop('ingredients')
+        tags_data = validated_data.pop('tags')
+        recipe = Recipe.objects.create(**validated_data)
+        recipe.tags.set(tags_data)
+        for ingredient_data in ingredients_data:
+            id = ingredient_data.get('id')
+            ingredient_id = get_object_or_404(Ingredient, id=id)
+            amount = ingredient_data.get('amount')
+            IngredientAmount.objects.create(
+                recipe=recipe, ingredient=ingredient_id, amount=amount
+            )
+        recipe.save()
+        return recipe
+
+

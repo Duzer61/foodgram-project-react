@@ -52,8 +52,8 @@ class RecipeViewSet(viewsets.ModelViewSet):
         .prefetch_related('ingredients', 'tags').all()
     )
 
-    def perform_create(self, serializer):
-        serializer.save(author=self.request.user)
+    # def perform_create(self, serializer):
+    #     serializer.save(author=self.request.user)
 
     def get_serializer_class(self):
         if self.action in ('list', 'retrieve'):
