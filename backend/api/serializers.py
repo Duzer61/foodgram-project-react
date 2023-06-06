@@ -6,6 +6,8 @@ from recipes.models import Ingredient, IngredientAmount, Recipe, Tag, User
 from rest_framework import serializers
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
 
+from .validators import ingredients_validator, tags_validator
+
 
 class UserSerializer(serializers.ModelSerializer):
     """Сериализатор для модели пользователей"""
@@ -96,13 +98,16 @@ class RecipeWriteSerializer(serializers.ModelSerializer):
             'ingredients', 'tags', 'name', 'text', 'cooking_time', 'author'
         ]
 
-    def validate_ingredients(self, data):
+    def validate(self, data):
         ingredients = self.initial_data.get('ingredients')
-        if ingredients == []:
-            raise ValidationError('Отсутствуют ингредиенты.')
-        for ingredient in ingredients:
-            if int(ingredient['amount']) <= 0:
-                raise ValidationError('Количество должно быть положительным!')
+        tags = self.initial_data.get('tags')
+        ingredients_validator(ingredients)
+        tags_validator(tags)
+        # if ingredients == []:
+        #     raise ValidationError('Отсутствуют ингредиенты.')
+        # for ingredient in ingredients:
+        #     if int(ingredient['amount']) <= 0:
+        #         raise ValidationError('Количество должно быть положительным!')
         return data
 
     def create(self, validated_data):

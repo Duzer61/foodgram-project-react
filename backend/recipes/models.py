@@ -1,4 +1,5 @@
 from django.contrib.auth import get_user_model
+from django.core.validators import MinValueValidator
 from django.db import models
 
 User = get_user_model()
@@ -51,8 +52,11 @@ class Recipe(models.Model):
         on_delete=models.SET_NULL,
         related_name='recipes'
     )
-    cooking_time = models.IntegerField(verbose_name='Время приготовления',
-                                       default=0)
+    cooking_time = models.IntegerField(
+        verbose_name='Время приготовления',
+        default=1,
+        validators=[MinValueValidator(1)]
+    )
     ingredients = models.ManyToManyField(
         Ingredient,
         through='IngredientAmount',
