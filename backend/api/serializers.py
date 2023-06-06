@@ -1,4 +1,5 @@
 from django.db.models import F
+from django.forms import ValidationError
 from django.shortcuts import get_object_or_404
 from djoser.serializers import UserSerializer as BaseUserSerializer
 from recipes.models import Ingredient, IngredientAmount, Recipe, Tag, User
@@ -94,11 +95,16 @@ class RecipeWriteSerializer(serializers.ModelSerializer):
         fields = [
             'ingredients', 'tags', 'name', 'text', 'cooking_time', 'author'
         ]
-    
-    #def get_ingredients(self, obj):
-    #    ingredients = IngredientAmount.objects.filter(recipe=obj)
-    #    return IngredientAmountReadSerializer(ingredients).data
-    
+
+    def validate_ingredients(self, data):
+        ingredients = self.initial_data.get('ingredients')
+        if ingredients == []:
+            raise ValidationError('Отсутствуют ингредиенты.')
+        for ingredient in ingredients:
+            if int(ingredient['amount']) <= 0:
+                raise ValidationError('Количество должно быть положительным!')
+        return data
+
     def create(self, validated_data):
         ingredients_data = validated_data.pop('ingredients')
         tags_data = validated_data.pop('tags')
