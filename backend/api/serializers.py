@@ -73,7 +73,7 @@ class RecipeReadSerializer(serializers.ModelSerializer):
 #        fields = ['id', 'name', 'measurement_unit', 'amount']
 
 
-class IngredeintAmountWriteSerializer(serializers.ModelSerializer):
+class IngredeintAmountSerializer(serializers.ModelSerializer):
     """Сериализатор для записи ингредиента и количества в рецепт."""
     id = serializers.IntegerField(write_only=True)
     amount = serializers.IntegerField(write_only=True)
@@ -88,7 +88,7 @@ class RecipeWriteSerializer(serializers.ModelSerializer):
     author = serializers.HiddenField(default=serializers.CurrentUserDefault())
     tags = serializers.PrimaryKeyRelatedField(queryset=Tag.objects.all(),
                                               many=True)
-    ingredients = IngredeintAmountWriteSerializer(many=True)
+    ingredients = IngredeintAmountSerializer(many=True)
 
     class Meta:
         model = Recipe
@@ -120,4 +120,7 @@ class RecipeWriteSerializer(serializers.ModelSerializer):
         recipe.save()
         return recipe
 
+    def to_representation(self, instance):
+        serializer = RecipeReadSerializer(instance, context=self.context)
+        return serializer.data
 
