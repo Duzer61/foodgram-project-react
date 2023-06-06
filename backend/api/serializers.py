@@ -78,7 +78,7 @@ class RecipeWriteSerializer(serializers.ModelSerializer):
         model = Recipe
         fields = '__all__'
     
-    def get_ingredients(self, recipe):
-        """Получает ингредиенты для рецепта."""
-        ingredients = (recipe.id, 'id', 'amount')
-        return ingredients
+    # def get_ingredients(self, recipe):
+    #     """Получает ингредиенты для рецепта."""
+    #     ingredients = (recipe.id, 'id', 'amount')
+    #     return ingredients
