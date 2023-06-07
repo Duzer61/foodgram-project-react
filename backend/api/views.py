@@ -2,14 +2,17 @@ from django.conf import settings
 from django.shortcuts import get_object_or_404, render
 from djoser.views import UserViewSet as DjoserUserViewSet
 from recipes.models import Favourites, Ingredient, Recipe, Tag, User
-from requests import Response
-from rest_framework import filters, permissions, serializers, status, viewsets
+from rest_framework import (exceptions, filters, permissions, serializers,
+                            viewsets)
 from rest_framework.decorators import action, permission_classes
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from rest_framework.status import HTTP_201_CREATED, HTTP_204_NO_CONTENT
 
-from .serializers import (IngredientSerializer, RecipeReadSerializer,
-                          RecipeWriteSerializer, TagSerializer, UserSerializer)
+from .serializers import (FavouriteRecipeSerializer, IngredientSerializer,
+                          RecipeReadSerializer, RecipeWriteSerializer,
+                          TagSerializer, UserSerializer)
 
 
 class UserViewSet(DjoserUserViewSet):
@@ -66,7 +69,16 @@ class RecipeViewSet(viewsets.ModelViewSet):
         in_favourite = Favourites.objects.filter(user=user, recipe=recipe)
         if request.method == 'POST':
             if not in_favourite:
-                favourite = Favourites.objects.create(user=user, recipe=recipe)
-                return
-            else:
-                return Response()
+                Favourites.objects.create(user=user, recipe=recipe)
+                serializer = FavouriteRecipeSerializer(
+                    recipe, context={'request': request}
+                )
+                return Response(
+                    serializer.data, status=HTTP_201_CREATED
+                )
+            raise exceptions.ValidationError('Рецепт уже в избранном.')
+        if not in_favourite:
+            raise exceptions.ValidationError('Этого рецепта нет в избранном.')
+        in_favourite.delete()
+        return Response(status=HTTP_204_NO_CONTENT)
+

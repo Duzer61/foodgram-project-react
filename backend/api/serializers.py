@@ -146,3 +146,10 @@ class RecipeWriteSerializer(serializers.ModelSerializer):
     def to_representation(self, instance):
         serializer = RecipeReadSerializer(instance, context=self.context)
         return serializer.data
+
+
+class FavouriteRecipeSerializer(serializers.ModelSerializer):
+    """Отображает краткое описание рецепта для избранного."""
+    class Meta:
+        model = Recipe
+        fields = ('id', 'name', 'cooking_time')
