@@ -6,6 +6,7 @@ from recipes.models import Ingredient, IngredientAmount, Recipe, Tag, User
 from rest_framework import serializers
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
 
+from .utils import ingredient_amount_set
 from .validators import ingredients_validator, tags_validator
 
 
@@ -115,13 +116,7 @@ class RecipeWriteSerializer(serializers.ModelSerializer):
         tags_data = validated_data.pop('tags')
         recipe = Recipe.objects.create(**validated_data)
         recipe.tags.set(tags_data)
-        for ingredient_data in ingredients_data:
-            id = ingredient_data.get('id')
-            ingredient_id = get_object_or_404(Ingredient, id=id)
-            amount = ingredient_data.get('amount')
-            IngredientAmount.objects.create(
-                recipe=recipe, ingredient=ingredient_id, amount=amount
-            )
+        ingredient_amount_set(recipe, ingredients_data)
         recipe.save()
         return recipe
 
@@ -135,17 +130,10 @@ class RecipeWriteSerializer(serializers.ModelSerializer):
         ingredients_data = validated_data.pop('ingredients')
         instance.tags.set(tags_data)
         IngredientAmount.objects.filter(recipe=instance).delete()
-        for ingredient_data in ingredients_data:
-            id = ingredient_data.get('id')
-            ingredient_id = get_object_or_404(Ingredient, id=id)
-            amount = ingredient_data.get('amount')
-            IngredientAmount.objects.create(
-                recipe=instance, ingredient=ingredient_id, amount=amount
-            )
+        ingredient_amount_set(instance, ingredients_data)
         instance.save()
         return instance
 
     def to_representation(self, instance):
         serializer = RecipeReadSerializer(instance, context=self.context)
         return serializer.data
-
