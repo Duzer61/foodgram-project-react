@@ -125,6 +125,26 @@ class RecipeWriteSerializer(serializers.ModelSerializer):
         recipe.save()
         return recipe
 
+    def update(self, instance, validated_data):
+        """Обновляет существующий рецепт."""
+        instance.name = validated_data.get('name', instance.name)
+        instance.text = validated_data.get('text', instance.text)
+        instance.cooking_time = validated_data.get('cooking_time',
+                                                   instance.cooking_time)
+        tags_data = validated_data.pop('tags')
+        ingredients_data = validated_data.pop('ingredients')
+        instance.tags.set(tags_data)
+        IngredientAmount.objects.filter(recipe=instance).delete()
+        for ingredient_data in ingredients_data:
+            id = ingredient_data.get('id')
+            ingredient_id = get_object_or_404(Ingredient, id=id)
+            amount = ingredient_data.get('amount')
+            IngredientAmount.objects.create(
+                recipe=instance, ingredient=ingredient_id, amount=amount
+            )
+        instance.save()
+        return instance
+
     def to_representation(self, instance):
         serializer = RecipeReadSerializer(instance, context=self.context)
         return serializer.data
