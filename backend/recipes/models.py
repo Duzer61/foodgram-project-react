@@ -109,3 +109,23 @@ class IngredientAmount(models.Model):
 
     def __str__(self) -> str:
         return f'{self.recipe} - {self.ingredient} - {self.amount}'
+
+
+class Favourites(models.Model):
+    """Модель для добавления рецептов в избранное"""
+    recipe = models.ForeignKey(
+        Recipe,
+        verbose_name='рецепт',
+        related_name='favourite',
+        on_delete=models.CASCADE
+    )
+    user = models.ForeignKey(
+        User,
+        verbose_name='пользователь',
+        related_name='favourite',
+        on_delete=models.CASCADE
+    )
+
+    class Meta:
+        verbose_name = 'Избранный'
+        verbose_name_plural = 'Избранные'

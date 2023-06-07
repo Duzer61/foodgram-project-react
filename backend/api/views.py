@@ -1,10 +1,12 @@
 from django.conf import settings
-from django.shortcuts import render
+from django.shortcuts import get_object_or_404, render
 from djoser.views import UserViewSet as DjoserUserViewSet
-from recipes.models import Ingredient, Recipe, Tag, User
+from recipes.models import Favourites, Ingredient, Recipe, Tag, User
+from requests import Response
 from rest_framework import filters, permissions, serializers, status, viewsets
 from rest_framework.decorators import action, permission_classes
 from rest_framework.pagination import PageNumberPagination
+from rest_framework.permissions import IsAuthenticated
 
 from .serializers import (IngredientSerializer, RecipeReadSerializer,
                           RecipeWriteSerializer, TagSerializer, UserSerializer)
@@ -28,7 +30,6 @@ class UserViewSet(DjoserUserViewSet):
 
 class TagViewSet(viewsets.ReadOnlyModelViewSet):
     """Вьюсет для работы с тегами."""
-    # http_method_names = ['get']
     serializer_class = TagSerializer
     queryset = Tag.objects.all()
     pagination_class = None
@@ -36,7 +37,6 @@ class TagViewSet(viewsets.ReadOnlyModelViewSet):
 
 class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
     """Вьюсет для работы с ингредиентами."""
-    # http_method_names = ['get']
     serializer_class = IngredientSerializer
     queryset = Ingredient.objects.all()
     pagination_class = None
@@ -46,17 +46,27 @@ class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
 
 class RecipeViewSet(viewsets.ModelViewSet):
     """Вьюсет для работы с рецептами."""
-    # serializer_class = RecipeSerializer
     queryset = (
         Recipe.objects.select_related('author')
         .prefetch_related('ingredients', 'tags').all()
     )
 
-    # def perform_create(self, serializer):
-    #     serializer.save(author=self.request.user)
-
     def get_serializer_class(self):
+        """Выбор сериализатора в зависимости от действия"""
         if self.action in ('list', 'retrieve'):
             return RecipeReadSerializer
         return RecipeWriteSerializer
 
+    @action(detail=True, methods=['post', 'delete'])
+    @permission_classes([IsAuthenticated])
+    def favorite(self, request, pk=None):
+        """Добавление и удаление рецепта в избанное."""
+        user = self.request.user
+        recipe = get_object_or_404(Recipe, pk=pk)
+        in_favourite = Favourites.objects.filter(user=user, recipe=recipe)
+        if request.method == 'POST':
+            if not in_favourite:
+                favourite = Favourites.objects.create(user=user, recipe=recipe)
+                return
+            else:
+                return Response()

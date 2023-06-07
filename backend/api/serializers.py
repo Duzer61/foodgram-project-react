@@ -45,6 +45,15 @@ class IngredientSerializer(serializers.ModelSerializer):
         read_only_fields = ['__all__']
 
 
+class FavouriteRecipeSerializer(serializers.ModelSerializer):
+    """Сериализатор для избранных рецептов"""
+
+    class Meta:
+        model = Recipe
+        fields = ['id', 'name', 'cooking_time']
+        read_only_fields = ['__all__']
+
+
 class RecipeReadSerializer(serializers.ModelSerializer):
     """Сериализатор для чтения рецептов."""
     author = UserSerializer(read_only=True)
