@@ -2,8 +2,10 @@ from django.db.models import F
 from django.forms import ValidationError
 from django.shortcuts import get_object_or_404
 from djoser.serializers import UserSerializer as BaseUserSerializer
-from recipes.models import Ingredient, IngredientAmount, Recipe, Tag, User
+from recipes.models import (Favourites, Ingredient, IngredientAmount, Recipe,
+                            Tag, User)
 from rest_framework import serializers
+from rest_framework.fields import CurrentUserDefault
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
 
 from .utils import ingredient_amount_set
@@ -59,6 +61,7 @@ class RecipeReadSerializer(serializers.ModelSerializer):
     author = UserSerializer(read_only=True)
     ingredients = serializers.SerializerMethodField()
     tags = TagSerializer(many=True, read_only=True)
+    is_favorited = serializers.SerializerMethodField()
     
     class Meta:
         model = Recipe
@@ -71,6 +74,13 @@ class RecipeReadSerializer(serializers.ModelSerializer):
             amount=F('ingredient_amount__amount')
         )
         return ingredients
+
+    def get_is_favorited(self, recipe):
+        """Определяет есть ли данный рецепт в избранном у пользователя."""
+        user = self.context['request'].user
+        if user.is_anonymous:
+            return False
+        return Favourites.objects.filter(user=user, recipe=recipe).exists()
 
 
 #class IngredientAmountReadSerializer(serializers.ModelSerializer):
