@@ -167,3 +167,30 @@ class FavouriteRecipeSerializer(serializers.ModelSerializer):
     class Meta:
         model = Recipe
         fields = ('id', 'name', 'cooking_time', 'image')
+
+
+class FollowSerializer(serializers.ModelSerializer):
+    user = serializers.SlugRelatedField(
+        read_only=True,
+        default=serializers.CurrentUserDefault(),
+        slug_field='username'
+    )
+
+    def validate(self, data):
+        """Проверка что юзер не подписывается сам на себя"""
+        if self.context['request'].user == data['following']:
+            raise serializers.ValidationError(
+                'Нельзя подписываться на самого себя.'
+            )
+        return data
+
+    class Meta:
+        fields = '__all__'
+        model = Follow
+        validators = [
+            serializers.UniqueTogetherValidator(
+                queryset=Follow.objects.all(),
+                fields=['following', 'user'],
+                message='Вы уже подписались. Нельзя впихнуть невпихуемое.'
+            )
+        ]

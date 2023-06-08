@@ -8,11 +8,12 @@ from rest_framework.decorators import action, permission_classes
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from rest_framework.status import HTTP_201_CREATED, HTTP_204_NO_CONTENT
+from rest_framework.status import (HTTP_200_OK, HTTP_201_CREATED,
+                                   HTTP_204_NO_CONTENT)
 
-from .serializers import (FavouriteRecipeSerializer, IngredientSerializer,
-                          RecipeReadSerializer, RecipeWriteSerializer,
-                          TagSerializer, UserSerializer)
+from .serializers import (FavouriteRecipeSerializer, FollowSerializer,
+                          IngredientSerializer, RecipeReadSerializer,
+                          RecipeWriteSerializer, TagSerializer, UserSerializer)
 
 
 class UserViewSet(DjoserUserViewSet):
@@ -21,7 +22,6 @@ class UserViewSet(DjoserUserViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
     pagination_class = PageNumberPagination
-    #permission_classes = [permissions.AllowAny]
 
     def get_permissions(self):
         """Дает доступ к эндпоинту /me/ только
@@ -29,6 +29,15 @@ class UserViewSet(DjoserUserViewSet):
         if self.action == 'me':
             return [permissions.IsAuthenticated()]
         return [permissions.AllowAny()]
+
+    @action(detail=False, methods=['get'])
+    @permission_classes([IsAuthenticated])
+    def subscriptions(self):
+        """Просмотр своих подписок."""
+        user = self.request.user
+        following = user.follower.all()
+        serializer = FollowSerializer(following, many=True)
+        return Response(serializer.data, status=HTTP_200_OK)
 
 
 class TagViewSet(viewsets.ReadOnlyModelViewSet):
