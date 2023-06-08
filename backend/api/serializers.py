@@ -1,3 +1,6 @@
+import base64
+
+from django.core.files.base import ContentFile
 from django.db.models import F
 from django.forms import ValidationError
 from django.shortcuts import get_object_or_404
@@ -56,6 +59,17 @@ class FavouriteRecipeSerializer(serializers.ModelSerializer):
         read_only_fields = ['__all__']
 
 
+class Base64ImageField(serializers.ImageField):
+    def to_internal_value(self, data):
+        if isinstance(data, str) and data.startswith('data:image'):
+            format, imgstr = data.split(';base64,')
+            ext = format.split('/')[-1]
+
+            data = ContentFile(base64.b64decode(imgstr), name='temp.' + ext)
+
+        return super().to_internal_value(data)
+
+
 class RecipeReadSerializer(serializers.ModelSerializer):
     """Сериализатор для чтения рецептов."""
     author = UserSerializer(read_only=True)
@@ -83,18 +97,6 @@ class RecipeReadSerializer(serializers.ModelSerializer):
         return Favourites.objects.filter(user=user, recipe=recipe).exists()
 
 
-#class IngredientAmountReadSerializer(serializers.ModelSerializer):
-#    id = serializers.IntegerField(source='ingredient.id')
-#    name = serializers.CharField(source='ingredient.name')
-#    measurement_unit = serializers.CharField(
-#        source='ingredient.measurement_unit'
-#    )
-#
-#    class Meta:
-#        model = IngredientAmount
-#        fields = ['id', 'name', 'measurement_unit', 'amount']
-
-
 class IngredeintAmountSerializer(serializers.ModelSerializer):
     """Сериализатор для записи ингредиента и количества в рецепт."""
     id = serializers.IntegerField(write_only=True)
@@ -111,11 +113,13 @@ class RecipeWriteSerializer(serializers.ModelSerializer):
     tags = serializers.PrimaryKeyRelatedField(queryset=Tag.objects.all(),
                                               many=True)
     ingredients = IngredeintAmountSerializer(many=True)
+    image = Base64ImageField()
 
     class Meta:
         model = Recipe
         fields = [
-            'ingredients', 'tags', 'name', 'text', 'cooking_time', 'author'
+            'ingredients', 'tags', 'name', 'text',
+            'cooking_time', 'author', 'image'
         ]
 
     def validate(self, data):
@@ -162,4 +166,4 @@ class FavouriteRecipeSerializer(serializers.ModelSerializer):
     """Отображает краткое описание рецепта для избранного."""
     class Meta:
         model = Recipe
-        fields = ('id', 'name', 'cooking_time')
+        fields = ('id', 'name', 'cooking_time', 'image')
