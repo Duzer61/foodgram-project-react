@@ -5,8 +5,8 @@ from django.db.models import F
 from django.forms import ValidationError
 from django.shortcuts import get_object_or_404
 from djoser.serializers import UserSerializer as BaseUserSerializer
-from recipes.models import (Favourites, Ingredient, IngredientAmount, Recipe,
-                            Tag, User)
+from recipes.models import (Favourites, Follow, Ingredient, IngredientAmount,
+                            Recipe, Tag, User)
 from rest_framework import serializers
 from rest_framework.fields import CurrentUserDefault
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
@@ -169,28 +169,22 @@ class FavouriteRecipeSerializer(serializers.ModelSerializer):
         fields = ('id', 'name', 'cooking_time', 'image')
 
 
+# ПЕРЕДЕЛАТЬ!!!
 class FollowSerializer(serializers.ModelSerializer):
-    user = serializers.SlugRelatedField(
-        read_only=True,
-        default=serializers.CurrentUserDefault(),
-        slug_field='username'
-    )
-
-    def validate(self, data):
-        """Проверка что юзер не подписывается сам на себя"""
-        if self.context['request'].user == data['following']:
-            raise serializers.ValidationError(
-                'Нельзя подписываться на самого себя.'
-            )
-        return data
+    """Отображает авторов, на которых подписан пользователь."""
+    is_subscribed = serializers.SerializerMethodField()
+    recipes_count = serializers.SerializerMethodField()
 
     class Meta:
-        fields = '__all__'
-        model = Follow
-        validators = [
-            serializers.UniqueTogetherValidator(
-                queryset=Follow.objects.all(),
-                fields=['following', 'user'],
-                message='Вы уже подписались. Нельзя впихнуть невпихуемое.'
-            )
-        ]
+        fields = ('email', 'id', 'username', 'first_name',
+                  'last_name', 'is_subscribed', 'recipes_count')
+        model = User
+        read_only_fields = ['__all__']
+
+    def get_is_subscribed(self):
+        """Возвращает True, т.к. в этом сериализаторе только подписки."""
+        return True
+
+    def get_recipes_count(self, following):
+        """Определяет сколько рецептов создано пользователем."""
+        return following.recipes.count()

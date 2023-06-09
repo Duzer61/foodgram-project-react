@@ -26,13 +26,12 @@ class UserViewSet(DjoserUserViewSet):
     def get_permissions(self):
         """Дает доступ к эндпоинту /me/ только
             аутентифицированным пользователям"""
-        if self.action == 'me':
+        if self.action in ['me', 'subscriptions']:
             return [permissions.IsAuthenticated()]
         return [permissions.AllowAny()]
 
     @action(detail=False, methods=['get'])
-    @permission_classes([IsAuthenticated])
-    def subscriptions(self):
+    def subscriptions(self, request):
         """Просмотр своих подписок."""
         user = self.request.user
         following = user.follower.all()
