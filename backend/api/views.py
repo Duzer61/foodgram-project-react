@@ -1,7 +1,7 @@
 from django.conf import settings
 from django.shortcuts import get_object_or_404, render
 from djoser.views import UserViewSet as DjoserUserViewSet
-from recipes.models import Favourites, Ingredient, Recipe, Tag, User
+from recipes.models import Favourites, Follow, Ingredient, Recipe, Tag, User
 from rest_framework import (exceptions, filters, permissions, serializers,
                             viewsets)
 from rest_framework.decorators import action, permission_classes
@@ -26,7 +26,7 @@ class UserViewSet(DjoserUserViewSet):
     def get_permissions(self):
         """Дает доступ к эндпоинту /me/ только
             аутентифицированным пользователям"""
-        if self.action in ['me', 'subscriptions']:
+        if self.action in ['me', 'subscriptions', 'subscribe']:
             return [permissions.IsAuthenticated()]
         return [permissions.AllowAny()]
 
@@ -37,6 +37,27 @@ class UserViewSet(DjoserUserViewSet):
         following = user.follower.all()
         serializer = FollowSerializer(following, many=True)
         return Response(serializer.data, status=HTTP_200_OK)
+
+    @action(detail=True, methods=['post', 'del'])
+    def subscribe(self, request, pk=None):
+        """Подписка и отписка на других пользователей."""
+        user = self.request.user
+        following = get_object_or_404(User, pk=pk)
+        in_following = Follow.objects.filter(user=user, following=following)
+        if request.method == 'POST':
+            if not in_following:
+                if user == following:
+                    raise exceptions.ValidationError(
+                        'Нельзя подписываться на самого себя.'
+                    )
+                Follow.objects.create(user=user, following=following)
+                serializer = FollowSerializer(
+                    following, context={'request': request}
+                )
+                return Response(serializer.data, status=HTTP_201_CREATED)
+            raise exceptions.ValidationError('Вы уже подписаны.')
+
+
 
 
 class TagViewSet(viewsets.ReadOnlyModelViewSet):
