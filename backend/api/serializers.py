@@ -181,7 +181,7 @@ class FollowSerializer(serializers.ModelSerializer):
         model = User
         read_only_fields = ['__all__']
 
-    def get_is_subscribed(self):
+    def get_is_subscribed(self, *args):
         """Возвращает True, т.к. в этом сериализаторе только подписки."""
         return True
 

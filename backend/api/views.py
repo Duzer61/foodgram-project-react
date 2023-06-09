@@ -18,13 +18,13 @@ from .serializers import (FavouriteRecipeSerializer, FollowSerializer,
 
 class UserViewSet(DjoserUserViewSet):
     """Вьюсет для работы с пользователями"""
-    http_method_names = ['get', 'post', 'head']
+    http_method_names = ['get', 'post', 'head', 'delete']
     queryset = User.objects.all()
     serializer_class = UserSerializer
     pagination_class = PageNumberPagination
 
     def get_permissions(self):
-        """Дает доступ к эндпоинту /me/ только
+        """Дает доступ к эндпоинту только
             аутентифицированным пользователям"""
         if self.action in ['me', 'subscriptions', 'subscribe']:
             return [permissions.IsAuthenticated()]
@@ -34,15 +34,15 @@ class UserViewSet(DjoserUserViewSet):
     def subscriptions(self, request):
         """Просмотр своих подписок."""
         user = self.request.user
-        following = user.follower.all()
-        serializer = FollowSerializer(following, many=True)
+        user_following = User.objects.filter(following__user=user)
+        serializer = FollowSerializer(user_following, many=True)
         return Response(serializer.data, status=HTTP_200_OK)
 
-    @action(detail=True, methods=['post', 'del'])
-    def subscribe(self, request, pk=None):
+    @action(detail=True, methods=['post', 'delete'])
+    def subscribe(self, request, id=None):
         """Подписка и отписка на других пользователей."""
         user = self.request.user
-        following = get_object_or_404(User, pk=pk)
+        following = get_object_or_404(User, id=id)
         in_following = Follow.objects.filter(user=user, following=following)
         if request.method == 'POST':
             if not in_following:
@@ -56,8 +56,10 @@ class UserViewSet(DjoserUserViewSet):
                 )
                 return Response(serializer.data, status=HTTP_201_CREATED)
             raise exceptions.ValidationError('Вы уже подписаны.')
-
-
+        if not in_following:
+            raise exceptions.ValidationError('Вы не подписаны на этого автора.')
+        in_following.delete()
+        return Response(status=HTTP_204_NO_CONTENT)
 
 
 class TagViewSet(viewsets.ReadOnlyModelViewSet):
