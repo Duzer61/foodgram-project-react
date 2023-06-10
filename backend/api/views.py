@@ -35,7 +35,7 @@ class UserViewSet(DjoserUserViewSet):
         user = self.request.user
         user_following = User.objects.filter(following__user=user)
         page = self.paginate_queryset(user_following)
-        serializer = FollowSerializer(page, many=True)
+        serializer = FollowSerializer(page, context={'request': request}, many=True)
         #return Response(serializer.data, status=HTTP_200_OK)
         return self.get_paginated_response(serializer.data)
 

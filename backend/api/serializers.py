@@ -55,7 +55,7 @@ class FavouriteRecipeSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Recipe
-        fields = ['id', 'name', 'cooking_time']
+        fields = ['id', 'name', 'image', 'cooking_time']
         read_only_fields = ['__all__']
 
 
@@ -162,28 +162,31 @@ class RecipeWriteSerializer(serializers.ModelSerializer):
         return serializer.data
 
 
-class FavouriteRecipeSerializer(serializers.ModelSerializer):
-    """Отображает краткое описание рецепта для избранного."""
-    class Meta:
-        model = Recipe
-        fields = ('id', 'name', 'cooking_time', 'image')
-
-
 # ПЕРЕДЕЛАТЬ!!!
 class FollowSerializer(serializers.ModelSerializer):
     """Отображает авторов, на которых подписан пользователь."""
     is_subscribed = serializers.SerializerMethodField()
+    recipes = serializers.SerializerMethodField()
     recipes_count = serializers.SerializerMethodField()
 
     class Meta:
         fields = ('email', 'id', 'username', 'first_name',
-                  'last_name', 'is_subscribed', 'recipes_count')
+                  'last_name', 'is_subscribed', 'recipes', 'recipes_count')
         model = User
         read_only_fields = ['__all__']
 
     def get_is_subscribed(self, *args):
         """Возвращает True, т.к. в этом сериализаторе только подписки."""
         return True
+
+    def get_recipes(self, obj):
+        """Возвращает краткие рецепты автора."""
+        recipes_limit = int(self.context['request'].query_params.get(
+            'recipes_limit', default=3)
+        )
+        recipes = obj.recipes.all()[:recipes_limit]
+        serializer = FavouriteRecipeSerializer(recipes, many=True)
+        return serializer.data
 
     def get_recipes_count(self, following):
         """Определяет сколько рецептов создано пользователем."""
