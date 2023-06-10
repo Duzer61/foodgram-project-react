@@ -21,7 +21,6 @@ class UserViewSet(DjoserUserViewSet):
     http_method_names = ['get', 'post', 'head', 'delete']
     queryset = User.objects.all()
     serializer_class = UserSerializer
-    pagination_class = PageNumberPagination
 
     def get_permissions(self):
         """Дает доступ к эндпоинту только
@@ -35,8 +34,10 @@ class UserViewSet(DjoserUserViewSet):
         """Просмотр своих подписок."""
         user = self.request.user
         user_following = User.objects.filter(following__user=user)
-        serializer = FollowSerializer(user_following, many=True)
-        return Response(serializer.data, status=HTTP_200_OK)
+        page = self.paginate_queryset(user_following)
+        serializer = FollowSerializer(page, many=True)
+        #return Response(serializer.data, status=HTTP_200_OK)
+        return self.get_paginated_response(serializer.data)
 
     @action(detail=True, methods=['post', 'delete'])
     def subscribe(self, request, id=None):
