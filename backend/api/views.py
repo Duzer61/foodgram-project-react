@@ -11,6 +11,7 @@ from rest_framework.response import Response
 from rest_framework.status import (HTTP_200_OK, HTTP_201_CREATED,
                                    HTTP_204_NO_CONTENT)
 
+from .permissions import IsSubscribeOnly
 from .serializers import (FavouriteRecipeSerializer, FollowSerializer,
                           IngredientSerializer, RecipeReadSerializer,
                           RecipeWriteSerializer, TagSerializer, UserSerializer)
@@ -23,8 +24,10 @@ class UserViewSet(DjoserUserViewSet):
     serializer_class = UserSerializer
 
     def get_permissions(self):
-        """Дает доступ к эндпоинту только
-            аутентифицированным пользователям"""
+        """Дает доступ к эндпоинтам только аутентифицированным пользователям
+            и разрешает метод delete только для своих подписок."""
+        if self.request.method == 'DELETE':
+            return [IsSubscribeOnly()]
         if self.action in ['me', 'subscriptions', 'subscribe']:
             return [permissions.IsAuthenticated()]
         return [permissions.AllowAny()]
@@ -58,7 +61,9 @@ class UserViewSet(DjoserUserViewSet):
                 return Response(serializer.data, status=HTTP_201_CREATED)
             raise exceptions.ValidationError('Вы уже подписаны.')
         if not in_following:
-            raise exceptions.ValidationError('Вы не подписаны на этого автора.')
+            raise exceptions.ValidationError(
+                'Вы не подписаны на этого автора.'
+            )
         in_following.delete()
         return Response(status=HTTP_204_NO_CONTENT)
 
