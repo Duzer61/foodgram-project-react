@@ -1,5 +1,6 @@
 from django.conf import settings
 from django.shortcuts import get_object_or_404, render
+from django_filters.rest_framework import DjangoFilterBackend
 from djoser.views import UserViewSet as DjoserUserViewSet
 from recipes.models import Favourites, Follow, Ingredient, Recipe, Tag, User
 from rest_framework import (exceptions, filters, permissions, serializers,
@@ -92,6 +93,8 @@ class RecipeViewSet(viewsets.ModelViewSet):
         .prefetch_related('ingredients', 'tags').all()
     )
     permission_classes = [IsAuthorOrAuthenticatedOrReadOnly]
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = ['author']
 
     def get_serializer_class(self):
         """Выбор сериализатора в зависимости от действия"""
