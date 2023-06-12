@@ -12,6 +12,7 @@ from rest_framework.response import Response
 from rest_framework.status import (HTTP_200_OK, HTTP_201_CREATED,
                                    HTTP_204_NO_CONTENT)
 
+from .filters import RecipeFilter
 from .permissions import IsAuthorOrAuthenticatedOrReadOnly, IsSubscribeOnly
 from .serializers import (FavouriteRecipeSerializer, FollowSerializer,
                           IngredientSerializer, RecipeReadSerializer,
@@ -94,7 +95,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
     )
     permission_classes = [IsAuthorOrAuthenticatedOrReadOnly]
     filter_backends = [DjangoFilterBackend]
-    filterset_fields = ['author']
+    filterset_class = RecipeFilter
 
     def get_serializer_class(self):
         """Выбор сериализатора в зависимости от действия"""
