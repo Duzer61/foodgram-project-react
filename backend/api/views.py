@@ -11,7 +11,7 @@ from rest_framework.response import Response
 from rest_framework.status import (HTTP_200_OK, HTTP_201_CREATED,
                                    HTTP_204_NO_CONTENT)
 
-from .permissions import IsSubscribeOnly
+from .permissions import IsAuthorOrAuthenticatedOrReadOnly, IsSubscribeOnly
 from .serializers import (FavouriteRecipeSerializer, FollowSerializer,
                           IngredientSerializer, RecipeReadSerializer,
                           RecipeWriteSerializer, TagSerializer, UserSerializer)
@@ -86,10 +86,12 @@ class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
 
 class RecipeViewSet(viewsets.ModelViewSet):
     """Вьюсет для работы с рецептами."""
+    http_method_names = ['get', 'post', 'head', 'patch', 'delete']
     queryset = (
         Recipe.objects.select_related('author')
         .prefetch_related('ingredients', 'tags').all()
     )
+    permission_classes = [IsAuthorOrAuthenticatedOrReadOnly]
 
     def get_serializer_class(self):
         """Выбор сериализатора в зависимости от действия"""
@@ -97,8 +99,8 @@ class RecipeViewSet(viewsets.ModelViewSet):
             return RecipeReadSerializer
         return RecipeWriteSerializer
 
-    @action(detail=True, methods=['post', 'delete'])
-    @permission_classes([IsAuthenticated])
+    @action(detail=True, methods=['post', 'delete'],
+            permission_classes=[IsAuthenticated])
     def favorite(self, request, pk=None):
         """Добавление и удаление рецепта в избанное."""
         user = self.request.user
