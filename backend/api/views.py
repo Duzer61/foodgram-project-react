@@ -1,9 +1,10 @@
 from django.conf import settings
+from django.db.models import Sum
 from django.shortcuts import get_object_or_404, render
 from django_filters.rest_framework import DjangoFilterBackend
 from djoser.views import UserViewSet as DjoserUserViewSet
-from recipes.models import (Favourites, Follow, Ingredient, Recipe,
-                            ShoppingCart, Tag, User)
+from recipes.models import (Favourites, Follow, Ingredient, IngredientAmount,
+                            Recipe, ShoppingCart, Tag, User)
 from rest_framework import (exceptions, filters, permissions, serializers,
                             viewsets)
 from rest_framework.decorators import action, permission_classes
@@ -15,9 +16,10 @@ from rest_framework.status import (HTTP_200_OK, HTTP_201_CREATED,
 
 from .filters import RecipeFilter
 from .permissions import IsAuthorOrAuthenticatedOrReadOnly, IsSubscribeOnly
-from .serializers import (FavouriteRecipeSerializer, FollowSerializer,
-                          IngredientSerializer, RecipeReadSerializer,
-                          RecipeWriteSerializer, TagSerializer, UserSerializer)
+from .serializers import (DevTestSerializer, FavouriteRecipeSerializer,
+                          FollowSerializer, IngredientSerializer,
+                          RecipeReadSerializer, RecipeWriteSerializer,
+                          TagSerializer, UserSerializer)
 
 
 class UserViewSet(DjoserUserViewSet):
@@ -152,3 +154,33 @@ class RecipeViewSet(viewsets.ModelViewSet):
                 raise exceptions.ValidationError('Этого рецепта нет в списке.')
             in_shopping_cart.delete()
             return Response(status=HTTP_204_NO_CONTENT)
+
+    @action(detail=False, methods=['get'],
+            permission_classes=[IsAuthenticated])
+    def download_shopping_cart(self, request):
+        user = self.request.user
+        ingredients_to_buy = IngredientAmount.objects.filter(
+            recipe__in_shopping_cart__user=user).values(
+                'ingredient__name',
+                'ingredient__measurement_unit',
+                'amount'
+        )
+        # ЭТО ТЕСТ. ПЕРЕДЕЛАТЬ И УДАЛИТЬ!!!
+        # if not ingredients_to_buy:
+        #     raise exceptions.ValidationError('В списке пусто.')
+        # #serializer = DevTestSerializer(ingredients_to_buy, many=True)
+        # ing_names_list = []
+        # new_list_to_buy = []
+        # for ing in ingredients_to_buy:
+        #     if ing["ingredient__name"] not in ing_names_list:
+        #         ing_names_list.append(ing["ingredient__name"])
+        #         new_list_to_buy.append([
+        #             ing["ingredient__name"],
+        #             ing["amount"],
+        #             ing["ingredient__measurement_unit"]
+        #         ])
+        #     else:
+        #         ind = ing_names_list.index(ing["ingredient__name"])
+        #         new_list_to_buy[ind][1] += ing["amount"]
+        # 
+        # return Response(new_list_to_buy)
