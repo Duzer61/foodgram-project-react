@@ -119,7 +119,7 @@ class Favourites(models.Model):
     """Модель для добавления рецептов в избранное"""
     recipe = models.ForeignKey(
         Recipe,
-        verbose_name='рецепт',
+        verbose_name='Рецепт',
         related_name='favourite',
         on_delete=models.CASCADE
     )
@@ -155,3 +155,26 @@ class Follow(models.Model):
         verbose_name_plural = 'Подписки'
         constraints = [models.UniqueConstraint(fields=['user', 'following'],
                                                name='unique_follow')]
+
+
+class ShoppingCart(models.Model):
+    """Модель для списка покупок."""
+    user = models.ForeignKey(
+        User,
+        verbose_name='Пользователь',
+        on_delete=models.CASCADE,
+        related_name='shopping_cart'
+    )
+    recipe = models.ForeignKey(
+        Recipe,
+        verbose_name='Рецепт',
+        related_name='in_shopping_cart',
+        on_delete=models.CASCADE
+    )
+
+    class Meta:
+        verbose_name = 'Список покупок'
+        verbose_name_plural = 'Список покупок'
+        constraints = [models.UniqueConstraint(
+            fields=['user', 'recipe'], name='unique_recipe_in_shopping_cart')
+        ]

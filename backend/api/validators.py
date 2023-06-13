@@ -7,8 +7,10 @@ def ingredients_validator(ingredients):
     if not ingredients:
         raise ValidationError('Отсутствуют ингредиенты.')
     for ingredient in ingredients:
-        if int(ingredient['amount']) <= 0:
-            raise ValidationError('Количество должно быть положительным!')
+        if int(ingredient['amount']) < 1:
+            raise ValidationError(
+                'Убедитесь, что это значение больше либо равно 1.'
+            )
 
 
 def tags_validator(tags):

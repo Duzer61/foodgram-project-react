@@ -10,13 +10,26 @@ class RecipeFilter(rest_framework.FilterSet):
         to_field_name='slug',
         queryset=Tag.objects.all()
     )
-    is_favorited = rest_framework.BooleanFilter(method='is_favorited_method')
+    is_favorited = rest_framework.BooleanFilter(
+        method='is_favorited_method')
+    is_in_shopping_cart = rest_framework.BooleanFilter(
+        method='is_in_shopping_cart_method')
 
     def is_favorited_method(self, queryset, name, value):
+        """Возвращает рецепты авторов, на которых подписан пользователь
+            или все рецепты в зависимости от запроса."""
         if value:
             queryset = queryset.filter(favourite__user=self.request.user)
         return queryset
-        
+
+    def is_in_shopping_cart_method(self, queryset, name, value):
+        """Возвращает рецепты, которые внесены в список покупок
+            или все рецепты в зависимости от запроса."""
+        if value:
+            queryset = queryset.filter(
+                in_shopping_cart__user=self.request.user
+            )
+        return queryset
 
     class Meta:
         model = Recipe

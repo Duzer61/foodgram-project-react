@@ -2,7 +2,8 @@ from django.conf import settings
 from django.shortcuts import get_object_or_404, render
 from django_filters.rest_framework import DjangoFilterBackend
 from djoser.views import UserViewSet as DjoserUserViewSet
-from recipes.models import Favourites, Follow, Ingredient, Recipe, Tag, User
+from recipes.models import (Favourites, Follow, Ingredient, Recipe,
+                            ShoppingCart, Tag, User)
 from rest_framework import (exceptions, filters, permissions, serializers,
                             viewsets)
 from rest_framework.decorators import action, permission_classes
@@ -120,8 +121,34 @@ class RecipeViewSet(viewsets.ModelViewSet):
                     serializer.data, status=HTTP_201_CREATED
                 )
             raise exceptions.ValidationError('Рецепт уже в избранном.')
-        if not in_favourite:
-            raise exceptions.ValidationError('Этого рецепта нет в избранном.')
-        in_favourite.delete()
-        return Response(status=HTTP_204_NO_CONTENT)
+        if request.method == 'DELETE':
+            if not in_favourite:
+                raise exceptions.ValidationError(
+                    'Этого рецепта нет в избранном.'
+                )
+            in_favourite.delete()
+            return Response(status=HTTP_204_NO_CONTENT)
 
+    @action(detail=True, methods=['post', 'delete'],
+            permission_classes=[IsAuthenticated])
+    def shopping_cart(self, request, pk=None):
+        """Добавление и удаление рецепта в список покупок."""
+        user = self.request.user
+        recipe = get_object_or_404(Recipe, pk=pk)
+        in_shopping_cart = ShoppingCart.objects.filter(user=user,
+                                                       recipe=recipe)
+        if request.method == 'POST':
+            if not in_shopping_cart:
+                ShoppingCart.objects.create(user=user, recipe=recipe)
+                serializer = FavouriteRecipeSerializer(
+                    recipe, context={'request': request}
+                )
+                return Response(
+                    serializer.data, status=HTTP_201_CREATED
+                )
+            raise exceptions.ValidationError('Рецепт уже в списке покупок.')
+        if request.method == 'DELETE':
+            if not in_shopping_cart:
+                raise exceptions.ValidationError('Этого рецепта нет в списке.')
+            in_shopping_cart.delete()
+            return Response(status=HTTP_204_NO_CONTENT)

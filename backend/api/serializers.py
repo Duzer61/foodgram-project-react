@@ -6,7 +6,7 @@ from django.forms import ValidationError
 from django.shortcuts import get_object_or_404
 from djoser.serializers import UserSerializer as BaseUserSerializer
 from recipes.models import (Favourites, Follow, Ingredient, IngredientAmount,
-                            Recipe, Tag, User)
+                            Recipe, ShoppingCart, Tag, User)
 from rest_framework import serializers
 from rest_framework.fields import CurrentUserDefault
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
@@ -76,6 +76,7 @@ class RecipeReadSerializer(serializers.ModelSerializer):
     ingredients = serializers.SerializerMethodField()
     tags = TagSerializer(many=True, read_only=True)
     is_favorited = serializers.SerializerMethodField()
+    is_in_shopping_cart = serializers.SerializerMethodField()
     
     class Meta:
         model = Recipe
@@ -95,6 +96,13 @@ class RecipeReadSerializer(serializers.ModelSerializer):
         if user.is_anonymous:
             return False
         return Favourites.objects.filter(user=user, recipe=recipe).exists()
+
+    def get_is_in_shopping_cart(self, recipe):
+        """Определяет есть ли данный рецепт в списке покупок у пользователя."""
+        user = self.context['request'].user
+        if user.is_anonymous:
+            return False
+        return ShoppingCart.objects.filter(user=user, recipe=recipe).exists()
 
 
 class IngredeintAmountSerializer(serializers.ModelSerializer):
@@ -162,7 +170,6 @@ class RecipeWriteSerializer(serializers.ModelSerializer):
         return serializer.data
 
 
-# ПЕРЕДЕЛАТЬ!!!
 class FollowSerializer(serializers.ModelSerializer):
     """Отображает авторов, на которых подписан пользователь."""
     is_subscribed = serializers.SerializerMethodField()
