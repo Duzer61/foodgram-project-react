@@ -179,7 +179,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
                     amount_sum=Sum('amount')
         ).order_by('ingredient__name').distinct()
 
-        shopping_list_text = 'Список для покупки.' + '\n'
+        shopping_list_text = 'Список для покупки.\n'
         for index, ing in enumerate(ingredients_to_buy, 1):
             ingredient = ing['ingredient__name'].capitalize()
             amount = ing['amount_sum']
