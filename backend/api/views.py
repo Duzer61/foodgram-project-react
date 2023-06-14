@@ -1,5 +1,6 @@
 from django.conf import settings
 from django.db.models import Sum
+from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, render
 from django_filters.rest_framework import DjangoFilterBackend
 from djoser.views import UserViewSet as DjoserUserViewSet
@@ -23,6 +24,7 @@ from .serializers import (FavouriteRecipeSerializer, FollowSerializer,
 
 class UserViewSet(DjoserUserViewSet):
     """Вьюсет для работы с пользователями"""
+
     http_method_names = ['get', 'post', 'head', 'delete']
     queryset = User.objects.all()
     serializer_class = UserSerializer
@@ -30,6 +32,7 @@ class UserViewSet(DjoserUserViewSet):
     def get_permissions(self):
         """Дает доступ к эндпоинтам только аутентифицированным пользователям
             и разрешает метод delete только для своих подписок."""
+
         if self.request.method == 'DELETE':
             return [IsSubscribeOnly()]
         if self.action in ['me', 'subscriptions', 'subscribe']:
@@ -39,6 +42,7 @@ class UserViewSet(DjoserUserViewSet):
     @action(detail=False, methods=['get'])
     def subscriptions(self, request):
         """Просмотр своих подписок."""
+
         user = self.request.user
         user_following = User.objects.filter(following__user=user)
         page = self.paginate_queryset(user_following)
@@ -49,6 +53,7 @@ class UserViewSet(DjoserUserViewSet):
     @action(detail=True, methods=['post', 'delete'])
     def subscribe(self, request, id=None):
         """Подписка и отписка на других пользователей."""
+
         user = self.request.user
         following = get_object_or_404(User, id=id)
         in_following = Follow.objects.filter(user=user, following=following)
@@ -74,6 +79,7 @@ class UserViewSet(DjoserUserViewSet):
 
 class TagViewSet(viewsets.ReadOnlyModelViewSet):
     """Вьюсет для работы с тегами."""
+
     serializer_class = TagSerializer
     queryset = Tag.objects.all()
     pagination_class = None
@@ -81,6 +87,7 @@ class TagViewSet(viewsets.ReadOnlyModelViewSet):
 
 class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
     """Вьюсет для работы с ингредиентами."""
+
     serializer_class = IngredientSerializer
     queryset = Ingredient.objects.all()
     pagination_class = None
@@ -90,6 +97,7 @@ class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
 
 class RecipeViewSet(viewsets.ModelViewSet):
     """Вьюсет для работы с рецептами."""
+
     http_method_names = ['get', 'post', 'head', 'patch', 'delete']
     queryset = (
         Recipe.objects.select_related('author')
@@ -101,6 +109,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
     def get_serializer_class(self):
         """Выбор сериализатора в зависимости от действия"""
+
         if self.action in ('list', 'retrieve'):
             return RecipeReadSerializer
         return RecipeWriteSerializer
@@ -109,6 +118,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
             permission_classes=[IsAuthenticated])
     def favorite(self, request, pk=None):
         """Добавление и удаление рецепта в избанное."""
+
         user = self.request.user
         recipe = get_object_or_404(Recipe, pk=pk)
         in_favourite = Favourites.objects.filter(user=user, recipe=recipe)
@@ -134,6 +144,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
             permission_classes=[IsAuthenticated])
     def shopping_cart(self, request, pk=None):
         """Добавление и удаление рецепта в список покупок."""
+
         user = self.request.user
         recipe = get_object_or_404(Recipe, pk=pk)
         in_shopping_cart = ShoppingCart.objects.filter(user=user,
@@ -157,6 +168,9 @@ class RecipeViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['get'],
             permission_classes=[IsAuthenticated])
     def download_shopping_cart(self, request):
+        """Формирует список для покупок и отдает
+            пользователю в виде текстового файла."""
+
         user = self.request.user
         ingredients_to_buy = IngredientAmount.objects.filter(
             recipe__in_shopping_cart__user=user).values(
@@ -165,22 +179,16 @@ class RecipeViewSet(viewsets.ModelViewSet):
                     amount_sum=Sum('amount')
         ).order_by('ingredient__name').distinct()
 
-        #ЭТО ТЕСТ. ПЕРЕДЕЛАТЬ И УДАЛИТЬ!!!
-        #if not ingredients_to_buy:
-        #    raise exceptions.ValidationError('В списке пусто.')
-        #ing_names_list = []
-        #new_list_to_buy = []
-        #for ing in ingredients_to_buy:
-        #    if ing["ingredient__name"] not in ing_names_list:
-        #        ing_names_list.append(ing["ingredient__name"])
-        #        new_list_to_buy.append([
-        #            ing["ingredient__name"],
-        #            ing["amount"],
-        #            ing["ingredient__measurement_unit"]
-        #        ])
-        #    else:
-        #        ind = ing_names_list.index(ing["ingredient__name"])
-        #        new_list_to_buy[ind][1] += ing["amount"]
-        
-        #return Response(new_list_to_buy)
-        return Response(ingredients_to_buy)
+        shopping_list_text = 'Список для покупки.' + '\n'
+        for index, ing in enumerate(ingredients_to_buy, 1):
+            ingredient = ing['ingredient__name'].capitalize()
+            amount = ing['amount_sum']
+            measure = ing['ingredient__measurement_unit']
+            new_line = f'\n{index}. {ingredient}: {amount} {measure}.'
+            shopping_list_text += new_line
+        response = HttpResponse(content_type='text/plain')
+        response['Content-Disposition'] = (
+            'attachment; filename="shopping_list.txt"'
+        )
+        response.write(shopping_list_text)
+        return response
