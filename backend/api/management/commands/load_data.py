@@ -1,10 +1,7 @@
 from csv import DictReader
 
-from django.conf import settings as conf_settings
 from django.core.management.base import BaseCommand
 from recipes.models import Ingredient
-
-#data_dir = '..data/'
 
 csv_files = [
     {'model': Ingredient, 'filename': 'ingredients.csv',
@@ -13,10 +10,10 @@ csv_files = [
 
 
 class Command(BaseCommand):
-    help = "Загружает данные из файлов csv"
+    """Загружает ингредиенты из файла csv."""
 
     def csv_loader(self, cf):
-        csv_file = 'static/data/ingredients.csv'#'{}\\data\\{}'.format(data_dir[0], cf['filename'])
+        csv_file = 'static/data/ingredients.csv'
         with open(csv_file, encoding='utf-8', newline='') as csvfile:
             reader = DictReader(csvfile, fieldnames=cf['fieldnames'])
             print(f'Загрузка в таблицу модели {cf["model"].__name__}')
@@ -26,7 +23,7 @@ class Command(BaseCommand):
             for row in reader:
                 if i != 0:
                     try:
-                        id = i  # row.pop('id')
+                        id = i
                         cf['model'].objects.update_or_create(
                             id=id, defaults=row)
                         r += 1
