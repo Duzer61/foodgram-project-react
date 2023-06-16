@@ -17,9 +17,13 @@ from .validators import ingredients_validator, tags_validator
 
 class UserSerializer(serializers.ModelSerializer):
     """Сериализатор для модели пользователей"""
+     
+    is_subscribed = serializers.SerializerMethodField()
+
     class Meta:
         fields = ('email', 'id', 'username', 'first_name',
-                  'last_name', 'password')
+                  'last_name', 'password', 'is_subscribed')
+        read_only_fields = ['is_subscribed']
         model = User
         extra_kwargs = {'password': {'write_only': True}}
 
@@ -27,6 +31,12 @@ class UserSerializer(serializers.ModelSerializer):
         user = User.objects.create_user(**validated_data)
         return user
 
+    def get_is_subscribed(self, following):
+        """Определяет подписан ли пользователь на данного автора."""
+        user = self.context['request'].user
+        if user.is_anonymous:
+            return False
+        return Follow.objects.filter(user=user, following=following).exists()
     # def update(self, instance, validated_data):
     #     if 'password' in validated_data:
     #         password = validated_data.pop('password')
