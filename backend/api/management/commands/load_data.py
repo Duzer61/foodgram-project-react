@@ -18,25 +18,24 @@ class Command(BaseCommand):
             reader = DictReader(csvfile, fieldnames=cf['fieldnames'])
             print(f'Загрузка в таблицу модели {cf["model"].__name__}')
 
-            i, err, r = 1, 0, 0
+            i, err, r = 0, 0, 0
 
             for row in reader:
-                if i != 0:
-                    try:
-                        id = i
-                        cf['model'].objects.update_or_create(
-                            id=id, defaults=row)
-                        r += 1
-                    except Exception as error:
-                        print(row)
-                        print(
-                            f'Ошибка записи в таблицу модели '
-                            f'{cf["model"].__name__}, '
-                            f'{str(error)}')
-                        err += 1
+                try:
+                    cf['model'].objects.update_or_create(
+                        name=row['name'], defaults=row
+                    )
+                    r += 1
+                except Exception as error:
+                    print(row)
+                    print(
+                        f'Ошибка записи в таблицу модели '
+                        f'{cf["model"].__name__}, '
+                        f'{str(error)}')
+                    err += 1
                 i += 1
             print(
-                f'Всего: {i-1} строк. Загружено: {r} строк. '
+                f'Всего: {i} строк. Загружено: {r} строк. '
                 f'Ошибки: {err} строк.')
 
     def handle(self, *args, **options):

@@ -17,6 +17,9 @@ class Ingredient(models.Model):
         verbose_name_plural = 'Ингредиенты'
         ordering = ['name']
 
+    def __str__(self):
+        return self.name
+
 
 class Tag(models.Model):
     """Модель тегов для рецепта"""
@@ -31,7 +34,7 @@ class Tag(models.Model):
                             unique=True)
 
     class Meta:
-        verbose_name = 'Тег',
+        verbose_name = 'Тег'
         verbose_name_plural = 'Теги'
         ordering = ['name']
 
@@ -178,3 +181,6 @@ class ShoppingCart(models.Model):
         constraints = [models.UniqueConstraint(
             fields=['user', 'recipe'], name='unique_recipe_in_shopping_cart')
         ]
+
+    def __str__(self):
+        return f'{self.user} - {self.recipe}'
