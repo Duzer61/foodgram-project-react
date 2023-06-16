@@ -1,21 +1,17 @@
-from django.conf import settings
 from django.db.models import Sum
 from django.http import HttpResponse
-from django.shortcuts import get_object_or_404, render
+from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from djoser.views import UserViewSet as DjoserUserViewSet
 from recipes.models import (Favourites, Follow, Ingredient, IngredientAmount,
                             Recipe, ShoppingCart, Tag, User)
-from rest_framework import (exceptions, filters, permissions, serializers,
-                            viewsets)
-from rest_framework.decorators import action, permission_classes
-from rest_framework.pagination import PageNumberPagination
+from rest_framework import exceptions, permissions, viewsets
+from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from rest_framework.status import (HTTP_200_OK, HTTP_201_CREATED,
-                                   HTTP_204_NO_CONTENT)
+from rest_framework.status import HTTP_201_CREATED, HTTP_204_NO_CONTENT
 
-from .filters import RecipeFilter
+from .filters import IngredientFilter, RecipeFilter
 from .permissions import IsAuthorOrAuthenticatedOrReadOnly, IsSubscribeOnly
 from .serializers import (FavouriteRecipeSerializer, FollowSerializer,
                           IngredientSerializer, RecipeReadSerializer,
@@ -46,8 +42,9 @@ class UserViewSet(DjoserUserViewSet):
         user = self.request.user
         user_following = User.objects.filter(following__user=user)
         page = self.paginate_queryset(user_following)
-        serializer = FollowSerializer(page, context={'request': request}, many=True)
-        #return Response(serializer.data, status=HTTP_200_OK)
+        serializer = FollowSerializer(
+            page, context={'request': request}, many=True
+        )
         return self.get_paginated_response(serializer.data)
 
     @action(detail=True, methods=['post', 'delete'])
@@ -91,7 +88,7 @@ class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = IngredientSerializer
     queryset = Ingredient.objects.all()
     pagination_class = None
-    filter_backends = (filters.SearchFilter,)
+    filter_backends = [IngredientFilter]
     search_fields = ('^name',)
 
 
