@@ -26,8 +26,8 @@ class UserViewSet(DjoserUserViewSet):
     serializer_class = UserSerializer
 
     def get_permissions(self):
-        """Дает доступ к эндпоинтам только аутентифицированным пользователям
-            и разрешает метод delete только для своих подписок."""
+        """Дает доступ к определенным эндпоинтам только аутентифицированным
+        пользователям и разрешает метод delete только для своих подписок."""
 
         if self.request.method == 'DELETE':
             return [IsSubscribeOnly()]
@@ -176,12 +176,12 @@ class RecipeViewSet(viewsets.ModelViewSet):
                     amount_sum=Sum('amount')
         ).order_by('ingredient__name').distinct()
 
-        shopping_list_text = 'Список для покупки.\n'
+        shopping_list_text = 'Список продуктов для покупки.\n'
         for index, ing in enumerate(ingredients_to_buy, 1):
             ingredient = ing['ingredient__name'].capitalize()
             amount = ing['amount_sum']
             measure = ing['ingredient__measurement_unit']
-            new_line = f'\n{index}. {ingredient}: {amount} {measure}.'
+            new_line = f'\n{index}.   {ingredient}: {amount} {measure}.'
             shopping_list_text += new_line
         response = HttpResponse(content_type='text/plain')
         response['Content-Disposition'] = (

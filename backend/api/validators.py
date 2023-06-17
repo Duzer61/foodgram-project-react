@@ -1,7 +1,5 @@
 from django.forms import ValidationError
 
-from .serializers import Tag
-
 
 def ingredients_validator(ingredients):
     if not ingredients:
@@ -16,4 +14,3 @@ def ingredients_validator(ingredients):
 def tags_validator(tags):
     if not tags or len(tags) > 3:
         raise ValidationError('Количество тегов должно быть от 1 до 3')
-

@@ -29,7 +29,7 @@ class RecipeAdmin(admin.ModelAdmin):
     inlines = (IngredientInline,)
 
     def in_favourite_count(self, recipe):
-        """Подсчитывает сколь раз рецепт добавлен в избранное."""
+        """Подсчитывает сколько раз рецепт добавлен в избранное."""
         return recipe.favourite.count()
 
     in_favourite_count.short_description = 'В избранном'

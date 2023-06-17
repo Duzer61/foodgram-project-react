@@ -137,6 +137,9 @@ class Favourites(models.Model):
         verbose_name = 'Избранный'
         verbose_name_plural = 'Избранные'
 
+    def __str__(self) -> str:
+        return f'{self.recipe} - {self.user}'
+
 
 class Follow(models.Model):
     """Модель для подписок на других пользователей."""
@@ -159,6 +162,9 @@ class Follow(models.Model):
         constraints = [models.UniqueConstraint(fields=['user', 'following'],
                                                name='unique_follow')]
 
+    def __str__(self) -> str:
+        return f'{self.user} - {self.following}'
+
 
 class ShoppingCart(models.Model):
     """Модель для списка покупок."""
@@ -177,7 +183,7 @@ class ShoppingCart(models.Model):
 
     class Meta:
         verbose_name = 'Список покупок'
-        verbose_name_plural = 'Список покупок'
+        verbose_name_plural = 'Списки покупок'
         constraints = [models.UniqueConstraint(
             fields=['user', 'recipe'], name='unique_recipe_in_shopping_cart')
         ]

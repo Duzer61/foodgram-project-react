@@ -5,6 +5,7 @@ from .views import Recipe, Tag, User
 
 
 class RecipeFilter(rest_framework.FilterSet):
+    """Фильтр для рецептов."""
     author = rest_framework.ModelChoiceFilter(queryset=User.objects.all())
     tags = rest_framework.ModelMultipleChoiceFilter(
         field_name='tags__slug',
