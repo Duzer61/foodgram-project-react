@@ -1,6 +1,5 @@
+from django.shortcuts import get_object_or_404
 from recipes.models import Ingredient, IngredientAmount
-
-from .serializers import get_object_or_404
 
 
 def ingredient_amount_set(recipe, ingredients_data):
