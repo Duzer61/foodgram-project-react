@@ -55,7 +55,7 @@ class Recipe(models.Model):
         on_delete=models.SET_NULL,
         related_name='recipes'
     )
-    cooking_time = models.IntegerField(
+    cooking_time = models.PositiveIntegerField(
         verbose_name='Время приготовления',
         default=1,
         validators=[MinValueValidator(1)]
@@ -99,7 +99,7 @@ class IngredientAmount(models.Model):
         related_name='ingredient_amount',
         on_delete=models.CASCADE
     )
-    amount = models.IntegerField(
+    amount = models.PositiveIntegerField(
         verbose_name='Количество ингредиента в рецепте'
     )
 
