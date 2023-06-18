@@ -1,8 +1,25 @@
+import re
+
 from django.contrib.auth import get_user_model
 from django.core.validators import MinValueValidator
 from django.db import models
+from django.forms import ValidationError
 
 User = get_user_model()
+
+
+def validate_color(value):
+    """Проверяет цвет тега на уникальность и соответствие hex-color."""
+    if (
+        Tag.objects.filter(color=value.upper()).exists()
+        or Tag.objects.filter(color=value.lower()).exists()
+    ):
+        raise ValidationError('Такой цвет уже занят другим тегом.')
+    reg = re.compile(r'^#([a-f0-9]{6}|[A-F0-9]{6})$')
+    if not reg.match(value):
+        raise ValidationError(
+            'Введите правильный 6-значный код hex-color в одном регистре.'
+        )
 
 
 class Ingredient(models.Model):
@@ -26,9 +43,12 @@ class Tag(models.Model):
     name = models.CharField(verbose_name='Название тега',
                             max_length=200,
                             unique=True)
-    color = models.CharField(verbose_name='Цвет тега',
-                             max_length=7,
-                             unique=True)
+    color = models.CharField(
+        verbose_name='Цвет тега',
+        max_length=7,
+        unique=True,
+        validators=[validate_color]
+    )
     slug = models.SlugField(verbose_name='Слаг тега',
                             max_length=200,
                             unique=True)
