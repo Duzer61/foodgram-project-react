@@ -1,8 +1,10 @@
 from django.db.models import F
 from django.forms import ValidationError
+
+from rest_framework import serializers
+
 from recipes.models import (Favourites, Ingredient, IngredientAmount, Recipe,
                             ShoppingCart, Tag, User)
-from rest_framework import serializers
 from users.models import Follow
 
 from .extra_fields import Base64ImageField

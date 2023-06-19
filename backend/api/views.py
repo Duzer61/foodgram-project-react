@@ -1,15 +1,20 @@
 from django.db.models import Sum
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
+
 from django_filters.rest_framework import DjangoFilterBackend
-from djoser.views import UserViewSet as DjoserUserViewSet
-from recipes.models import (Favourites, Ingredient, IngredientAmount, Recipe,
-                            ShoppingCart, Tag, User)
+
 from rest_framework import exceptions, permissions, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.status import HTTP_201_CREATED, HTTP_204_NO_CONTENT
+
+from djoser.views import UserViewSet as DjoserUserViewSet
+
+from recipes.models import (Favourites, Ingredient, IngredientAmount, Recipe,
+                            ShoppingCart, Tag, User)
+
 from users.models import Follow
 
 from .filters import IngredientFilter, RecipeFilter
