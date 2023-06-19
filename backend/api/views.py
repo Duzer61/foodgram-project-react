@@ -1,4 +1,3 @@
-from django.db.models import Sum
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 
@@ -12,7 +11,7 @@ from rest_framework.status import HTTP_201_CREATED, HTTP_204_NO_CONTENT
 
 from djoser.views import UserViewSet as DjoserUserViewSet
 
-from recipes.models import (Favourites, Ingredient, IngredientAmount, Recipe,
+from recipes.models import (Favourites, Ingredient, Recipe,
                             ShoppingCart, Tag, User)
 
 from users.models import Follow
@@ -59,25 +58,32 @@ class UserViewSet(DjoserUserViewSet):
 
         user = self.request.user
         following = get_object_or_404(User, id=id)
-        in_following = Follow.objects.filter(user=user, following=following)
+        # in_following = Follow.objects.filter(user=user, following=following)
         if request.method == 'POST':
-            if not in_following:
-                if user == following:
-                    raise exceptions.ValidationError(
-                        'Нельзя подписываться на самого себя.'
-                    )
-                Follow.objects.create(user=user, following=following)
-                serializer = FollowSerializer(
-                    following, context={'request': request}
-                )
-                return Response(serializer.data, status=HTTP_201_CREATED)
-            raise exceptions.ValidationError('Вы уже подписаны.')
-        if not in_following:
-            raise exceptions.ValidationError(
-                'Вы не подписаны на этого автора.'
+            serializer = FollowSerializer(
+                following, data=request.data, context={'request': request}
             )
-        in_following.delete()
-        return Response(status=HTTP_204_NO_CONTENT)
+            serializer.is_valid(raise_exception=True)
+            Follow.objects.create(user=user, following=following)
+            return Response(serializer.data, status=HTTP_201_CREATED)
+            # if not in_following:
+            #     if user == following:
+            #         raise exceptions.ValidationError(
+            #             'Нельзя подписываться на самого себя.'
+            #         )
+            #     Follow.objects.create(user=user, following=following)
+            #     serializer = FollowSerializer(
+            #         following, context={'request': request}
+            #     )
+            #     return Response(serializer.data, status=HTTP_201_CREATED)
+            # raise exceptions.ValidationError('Вы уже подписаны.')
+        if request.method == 'DELETE':
+            serializer = FollowSerializer(
+                following, data=request.data, context={'request': request}
+            )
+            serializer.is_valid(raise_exception=True)
+            Follow.objects.filter(user=user, following=following).delete()
+            return Response(status=HTTP_204_NO_CONTENT)
 
 
 class TagViewSet(viewsets.ReadOnlyModelViewSet):

@@ -200,11 +200,11 @@ class ShoppingCart(models.Model):
             amount = ing['amount_sum']
             measure = ing['ingredient__measurement_unit']
             if index < 10:
-                intend_ind = 2
+                intend = 2
             else:
-                intend_ind = 1
+                intend = 1
             new_line = (
-                f'\n{index}.{" " * intend_ind}{ingredient} - {amount} {measure}.'
+                f'\n{index}.{" " * intend}{ingredient} - {amount} {measure}.'
             )
             shopping_list_text += new_line
         return shopping_list_text

@@ -193,6 +193,20 @@ class FollowSerializer(serializers.ModelSerializer):
             'is_subscribed', 'recipes', 'recipes_count'
         ]
 
+    def validate(self, data):
+        user = self.context.get('request').user
+        following = self.instance
+        if self.context.get('request').method == 'POST':
+            if Follow.objects.filter(user=user, following=following).exists():
+                raise ValidationError('Вы уже подписаны.')
+            if user == following:
+                raise ValidationError('Нельзя подписываться на самого себя.')
+            return data
+        if self.context.get('request').method == 'DELETE':
+            if Follow.objects.filter(user=user, following=following).exists():
+                return data
+            raise ValidationError('Такой подписки нет.')
+
     def get_is_subscribed(self, *args):
         """Возвращает True, т.к. в этом сериализаторе только подписки."""
         return True
