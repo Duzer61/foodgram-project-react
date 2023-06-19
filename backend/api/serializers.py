@@ -1,14 +1,12 @@
-import base64
-
-from django.core.files.base import ContentFile
 from django.db.models import F
+from django.forms import ValidationError
 from recipes.models import (Favourites, Ingredient, IngredientAmount, Recipe,
                             ShoppingCart, Tag, User)
 from rest_framework import serializers
 from users.models import Follow
 
+from .extra_fields import Base64ImageField
 from .utils import ingredient_amount_set
-from .validators import ingredients_validator, tags_validator
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -59,17 +57,6 @@ class FavouriteRecipeSerializer(serializers.ModelSerializer):
         model = Recipe
         fields = ['id', 'name', 'image', 'cooking_time']
         read_only_fields = ['id', 'name', 'image', 'cooking_time']
-
-
-class Base64ImageField(serializers.ImageField):
-    def to_internal_value(self, data):
-        if isinstance(data, str) and data.startswith('data:image'):
-            format, imgstr = data.split(';base64,')
-            ext = format.split('/')[-1]
-
-            data = ContentFile(base64.b64decode(imgstr), name='temp.' + ext)
-
-        return super().to_internal_value(data)
 
 
 class RecipeReadSerializer(serializers.ModelSerializer):
@@ -132,11 +119,32 @@ class RecipeWriteSerializer(serializers.ModelSerializer):
             'cooking_time', 'author', 'image'
         ]
 
-    def validate(self, data):
+    def validate_ingredients(self, data):
+        """Валидация ингредиентов."""
         ingredients = self.initial_data.get('ingredients')
+        if not ingredients:
+            raise ValidationError('Отсутствуют ингредиенты.')
+        used_ingredients = []
+        for ingredient in ingredients:
+            if int(ingredient['amount']) < 1:
+                raise ValidationError(
+                    'Убедитесь, что это значение больше либо равно 1.'
+                )
+            if ingredient['id'] in used_ingredients:
+                raise ValidationError('Ингредиенты повторяются.')
+            used_ingredients.append(ingredient['id'])
+        return data
+
+    def validate_tags(self, data):
+        """Валидация тегов."""
         tags = self.initial_data.get('tags')
-        ingredients_validator(ingredients)
-        tags_validator(tags)
+        tags_count = Tag.objects.count()
+        if not tags or len(tags) > tags_count:
+            raise ValidationError(
+                f'Количество тегов должно быть от 1 до {tags_count}.'
+            )
+        if len(tags) != len(set(tags)):
+            raise ValidationError('Введенные теги повторяются.')
         return data
 
     def create(self, validated_data):
