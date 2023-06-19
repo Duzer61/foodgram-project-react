@@ -3,7 +3,7 @@ from django.shortcuts import get_object_or_404
 
 from django_filters.rest_framework import DjangoFilterBackend
 
-from rest_framework import exceptions, permissions, viewsets
+from rest_framework import permissions, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -58,7 +58,7 @@ class UserViewSet(DjoserUserViewSet):
 
         user = self.request.user
         following = get_object_or_404(User, id=id)
-        # in_following = Follow.objects.filter(user=user, following=following)
+
         if request.method == 'POST':
             serializer = FollowSerializer(
                 following, data=request.data, context={'request': request}
@@ -66,17 +66,7 @@ class UserViewSet(DjoserUserViewSet):
             serializer.is_valid(raise_exception=True)
             Follow.objects.create(user=user, following=following)
             return Response(serializer.data, status=HTTP_201_CREATED)
-            # if not in_following:
-            #     if user == following:
-            #         raise exceptions.ValidationError(
-            #             'Нельзя подписываться на самого себя.'
-            #         )
-            #     Follow.objects.create(user=user, following=following)
-            #     serializer = FollowSerializer(
-            #         following, context={'request': request}
-            #     )
-            #     return Response(serializer.data, status=HTTP_201_CREATED)
-            # raise exceptions.ValidationError('Вы уже подписаны.')
+
         if request.method == 'DELETE':
             serializer = FollowSerializer(
                 following, data=request.data, context={'request': request}
@@ -130,23 +120,19 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
         user = self.request.user
         recipe = get_object_or_404(Recipe, pk=pk)
-        in_favourite = Favourites.objects.filter(user=user, recipe=recipe)
+        serializer = FavouriteRecipeSerializer(
+            recipe, data=request.data,
+            context={
+                'request': request,
+                'action_name': 'favorite'
+            }
+        )
+        serializer.is_valid(raise_exception=True)
         if request.method == 'POST':
-            if not in_favourite:
-                Favourites.objects.create(user=user, recipe=recipe)
-                serializer = FavouriteRecipeSerializer(
-                    recipe, context={'request': request}
-                )
-                return Response(
-                    serializer.data, status=HTTP_201_CREATED
-                )
-            raise exceptions.ValidationError('Рецепт уже в избранном.')
+            Favourites.objects.create(user=user, recipe=recipe)
+            return Response(serializer.data, status=HTTP_201_CREATED)
         if request.method == 'DELETE':
-            if not in_favourite:
-                raise exceptions.ValidationError(
-                    'Этого рецепта нет в избранном.'
-                )
-            in_favourite.delete()
+            Favourites.objects.filter(user=user, recipe=recipe).delete()
             return Response(status=HTTP_204_NO_CONTENT)
 
     @action(detail=True, methods=['post', 'delete'],
@@ -156,22 +142,19 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
         user = self.request.user
         recipe = get_object_or_404(Recipe, pk=pk)
-        in_shopping_cart = ShoppingCart.objects.filter(user=user,
-                                                       recipe=recipe)
+        serializer = FavouriteRecipeSerializer(
+            recipe, data=request.data,
+            context={
+                'request': request,
+                'action_name': 'shopping_cart'
+            }
+        )
+        serializer.is_valid(raise_exception=True)
         if request.method == 'POST':
-            if not in_shopping_cart:
-                ShoppingCart.objects.create(user=user, recipe=recipe)
-                serializer = FavouriteRecipeSerializer(
-                    recipe, context={'request': request}
-                )
-                return Response(
-                    serializer.data, status=HTTP_201_CREATED
-                )
-            raise exceptions.ValidationError('Рецепт уже в списке покупок.')
+            ShoppingCart.objects.create(user=user, recipe=recipe)
+            return Response(serializer.data, status=HTTP_201_CREATED)
         if request.method == 'DELETE':
-            if not in_shopping_cart:
-                raise exceptions.ValidationError('Этого рецепта нет в списке.')
-            in_shopping_cart.delete()
+            ShoppingCart.objects.filter(user=user, recipe=recipe).delete()
             return Response(status=HTTP_204_NO_CONTENT)
 
     @action(detail=False, methods=['get'],

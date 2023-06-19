@@ -60,6 +60,44 @@ class FavouriteRecipeSerializer(serializers.ModelSerializer):
         fields = ['id', 'name', 'image', 'cooking_time']
         read_only_fields = ['id', 'name', 'image', 'cooking_time']
 
+    def validate_favorite(self, data, user, recipe):
+        """Валидация добавления и удаления из избранного."""
+
+        if self.context.get('request').method == 'POST':
+            if Favourites.objects.filter(user=user, recipe=recipe).exists():
+                raise ValidationError('Рецепт уже в избранном.')
+            return data
+
+        if self.context.get('request').method == 'DELETE':
+            if Favourites.objects.filter(user=user, recipe=recipe).exists():
+                return data
+            raise ValidationError('Этого рецепта нет в избранном.')
+
+    def validate_shopping_cart(self, data, user, recipe):
+        """Валидация добавления и удаления в список покупок."""
+
+        if self.context.get('request').method == 'POST':
+            if ShoppingCart.objects.filter(user=user, recipe=recipe).exists():
+                raise ValidationError('Рецепт уже в списке покупок.')
+            return data
+
+        if self.context.get('request').method == 'DELETE':
+            if ShoppingCart.objects.filter(user=user, recipe=recipe).exists():
+                return data
+            raise ValidationError('Этого рецепта нет в списке покупок.')
+
+    def validate(self, data):
+        """Вызов валидирующей функции и возврат валидированных данных."""
+
+        user = self.context.get('request').user
+        recipe = self.instance
+
+        if self.context.get('action_name') == 'favorite':
+            return self.validate_favorite(data, user, recipe)
+
+        if self.context.get('action_name') == 'shopping_cart':
+            return self.validate_shopping_cart(data, user, recipe)
+
 
 class RecipeReadSerializer(serializers.ModelSerializer):
     """Сериализатор для чтения рецептов."""
