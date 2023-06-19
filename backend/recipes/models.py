@@ -183,5 +183,31 @@ class ShoppingCart(models.Model):
             fields=['user', 'recipe'], name='unique_recipe_in_shopping_cart')
         ]
 
+    def shopping_list_text(self, request):
+        """Формирует список покупок."""
+
+        ingredients_to_buy = IngredientAmount.objects.filter(
+            recipe__in_shopping_cart__user=self.request.user).values(
+                'ingredient__name',
+                'ingredient__measurement_unit').annotate(
+                    amount_sum=models.Sum('amount')
+        ).order_by('ingredient__name').distinct()
+
+        shopping_list_text = 'Список продуктов для покупки.\n'
+
+        for index, ing in enumerate(ingredients_to_buy, 1):
+            ingredient = ing['ingredient__name'].capitalize()
+            amount = ing['amount_sum']
+            measure = ing['ingredient__measurement_unit']
+            if index < 10:
+                intend_ind = 2
+            else:
+                intend_ind = 1
+            new_line = (
+                f'\n{index}.{" " * intend_ind}{ingredient} - {amount} {measure}.'
+            )
+            shopping_list_text += new_line
+        return shopping_list_text
+
     def __str__(self):
         return f'{self.user} - {self.recipe}'

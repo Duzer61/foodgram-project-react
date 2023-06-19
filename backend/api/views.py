@@ -171,24 +171,9 @@ class RecipeViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['get'],
             permission_classes=[IsAuthenticated])
     def download_shopping_cart(self, request):
-        """Формирует список для покупок и отдает
-            пользователю в виде текстового файла."""
+        """Отдает пользователю список для покупок в виде текстового файла."""
 
-        user = self.request.user
-        ingredients_to_buy = IngredientAmount.objects.filter(
-            recipe__in_shopping_cart__user=user).values(
-                'ingredient__name',
-                'ingredient__measurement_unit').annotate(
-                    amount_sum=Sum('amount')
-        ).order_by('ingredient__name').distinct()
-
-        shopping_list_text = 'Список продуктов для покупки.\n'
-        for index, ing in enumerate(ingredients_to_buy, 1):
-            ingredient = ing['ingredient__name'].capitalize()
-            amount = ing['amount_sum']
-            measure = ing['ingredient__measurement_unit']
-            new_line = f'\n{index}.   {ingredient}: {amount} {measure}.'
-            shopping_list_text += new_line
+        shopping_list_text = ShoppingCart.shopping_list_text(self, request)
         response = HttpResponse(content_type='text/plain')
         response['Content-Disposition'] = (
             'attachment; filename="shopping_list.txt"'
