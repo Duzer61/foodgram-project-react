@@ -40,16 +40,16 @@ class TagSerializer(serializers.ModelSerializer):
     """Сериализатор для модели тегов."""
     class Meta:
         model = Tag
-        fields = '__all__'
-        read_only_fields = ['__all__']
+        fields = ['name', 'color', 'slug']
+        read_only_fields = ['name', 'color', 'slug']
 
 
 class IngredientSerializer(serializers.ModelSerializer):
     """Сериализатор для модели ингредиентов."""
     class Meta:
         model = Ingredient
-        fields = '__all__'
-        read_only_fields = ['__all__']
+        fields = ['name', 'measurement_unit']
+        read_only_fields = ['name', 'measurement_unit']
 
 
 class FavouriteRecipeSerializer(serializers.ModelSerializer):
@@ -58,7 +58,7 @@ class FavouriteRecipeSerializer(serializers.ModelSerializer):
     class Meta:
         model = Recipe
         fields = ['id', 'name', 'image', 'cooking_time']
-        read_only_fields = ['__all__']
+        read_only_fields = ['id', 'name', 'image', 'cooking_time']
 
 
 class Base64ImageField(serializers.ImageField):
@@ -178,7 +178,10 @@ class FollowSerializer(serializers.ModelSerializer):
         fields = ('email', 'id', 'username', 'first_name',
                   'last_name', 'is_subscribed', 'recipes', 'recipes_count')
         model = User
-        read_only_fields = ['__all__']
+        read_only_fields = [
+            'email', 'id', 'username', 'first_name', 'last_name',
+            'is_subscribed', 'recipes', 'recipes_count'
+        ]
 
     def get_is_subscribed(self, *args):
         """Возвращает True, т.к. в этом сериализаторе только подписки."""
