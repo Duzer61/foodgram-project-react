@@ -2,9 +2,10 @@ import base64
 
 from django.core.files.base import ContentFile
 from django.db.models import F
-from recipes.models import (Favourites, Follow, Ingredient, IngredientAmount,
-                            Recipe, ShoppingCart, Tag, User)
+from recipes.models import (Favourites, Ingredient, IngredientAmount, Recipe,
+                            ShoppingCart, Tag, User)
 from rest_framework import serializers
+from users.models import Follow
 
 from .utils import ingredient_amount_set
 from .validators import ingredients_validator, tags_validator
