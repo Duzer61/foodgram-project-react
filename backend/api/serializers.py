@@ -40,16 +40,16 @@ class TagSerializer(serializers.ModelSerializer):
     """Сериализатор для модели тегов."""
     class Meta:
         model = Tag
-        fields = ['name', 'color', 'slug']
-        read_only_fields = ['name', 'color', 'slug']
+        fields = ['id', 'name', 'color', 'slug']
+        read_only_fields = ['id', 'name', 'color', 'slug']
 
 
 class IngredientSerializer(serializers.ModelSerializer):
     """Сериализатор для модели ингредиентов."""
     class Meta:
         model = Ingredient
-        fields = ['name', 'measurement_unit']
-        read_only_fields = ['name', 'measurement_unit']
+        fields = ['id', 'name', 'measurement_unit']
+        read_only_fields = ['id', 'name', 'measurement_unit']
 
 
 class FavouriteRecipeSerializer(serializers.ModelSerializer):
@@ -88,7 +88,7 @@ class FavouriteRecipeSerializer(serializers.ModelSerializer):
 
     def validate(self, data):
         """Вызов валидирующей функции и возврат валидированных данных."""
-
+        # Если помещать все в одну функцию она получается слишком сложной.
         user = self.context.get('request').user
         recipe = self.instance
 
