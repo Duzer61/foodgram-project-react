@@ -161,11 +161,13 @@ class RecipeWriteSerializer(serializers.ModelSerializer):
 
     def validate_ingredients(self, data):
         """Валидация ингредиентов."""
-        ingredients = self.initial_data.get('ingredients')
-        if not ingredients:
+        if not data:
             raise ValidationError('Отсутствуют ингредиенты.')
-        used_ingredients = []
-        for ingredient in ingredients:
+        used_ingredients = []  # Оставил список, т.к. если я не ошибаюсь, то
+        # как в тегах set здесь использовать не получтися, потому-что здесь
+        # в data содержится OrderedDict. Или в замечании что-то другое имелось
+        # ввиду?
+        for ingredient in data:
             if int(ingredient['amount']) < 1:
                 raise ValidationError(
                     'Убедитесь, что это значение больше либо равно 1.'
@@ -177,13 +179,12 @@ class RecipeWriteSerializer(serializers.ModelSerializer):
 
     def validate_tags(self, data):
         """Валидация тегов."""
-        tags = self.initial_data.get('tags')
         tags_count = Tag.objects.count()
-        if not tags or len(tags) > tags_count:
+        if not data or len(data) > tags_count:
             raise ValidationError(
                 f'Количество тегов должно быть от 1 до {tags_count}.'
             )
-        if len(tags) != len(set(tags)):
+        if len(data) != len(set(data)):
             raise ValidationError('Введенные теги повторяются.')
         return data
 
