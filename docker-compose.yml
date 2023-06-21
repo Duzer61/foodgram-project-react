@@ -9,6 +9,7 @@ volumes:
 services:
 
   db:
+    container_name: foodgram_db
     # Из какого образа запустить контейнер:
     image: postgres:13.10
     # Файл (или список файлов) с переменными окружения
@@ -19,6 +20,7 @@ services:
 
   # Имя и описание контейнера с бэкендом
   backend:
+    container_name: foodgram_backend
     # Из какого Dockerfile собирать образ для этого контейнера:
     build: ./backend/
     env_file: .env
@@ -30,6 +32,7 @@ services:
     # Какие контейнеры нужно запустить до старта этого контейнера:
 
   frontend:
+    container_name: foodgram_frontend
     env_file: .env
     build: ./frontend/
     command: cp -r /app/build/. /frontend_static/
@@ -37,6 +40,7 @@ services:
       - static:/frontend_static
 # Добавляем новый контейнер: gateway.
   gateway:
+    container_name: foodgram_gateway
     # Сбилдить и запустить образ, 
     # описанный в Dockerfile в папке gateway
     build: ./gateway/
