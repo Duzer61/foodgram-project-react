@@ -163,18 +163,16 @@ class RecipeWriteSerializer(serializers.ModelSerializer):
         """Валидация ингредиентов."""
         if not data:
             raise ValidationError('Отсутствуют ингредиенты.')
-        used_ingredients = []  # Оставил список, т.к. если я не ошибаюсь, то
-        # как в тегах set здесь использовать не получтися, потому-что здесь
-        # в data содержится OrderedDict. Или в замечании что-то другое имелось
-        # ввиду?
+        used_ingredients = set()  # Сначала неправильно понял.
+        # Комментарий удалю само-собой.
         for ingredient in data:
             if int(ingredient['amount']) < 1:
                 raise ValidationError(
                     'Убедитесь, что это значение больше либо равно 1.'
                 )
-            if ingredient['id'] in used_ingredients:
-                raise ValidationError('Ингредиенты повторяются.')
-            used_ingredients.append(ingredient['id'])
+            used_ingredients.add(ingredient['id'])
+        if len(used_ingredients) != len(data):
+            raise ValidationError('Ингредиенты повторяются.')
         return data
 
     def validate_tags(self, data):
