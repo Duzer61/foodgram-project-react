@@ -15,9 +15,9 @@ SECRET_KEY = os.getenv('DJANGO_KEY', 'django-insecure-v^b!p=l^d+cnpbc&!i68grvqzv
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv('DEBUG') == 'True'
 
-ALLOWED_HOSTS = ['127.0.0.1', 'localhost', 'foodgramophone.hopto.org']
+ALLOWED_HOSTS = ['127.0.0.1', 'localhost', '130.193.55.60', 'foodgramophone.hopto.org']
 
-CSRF_TRUSTED_ORIGINS = ['http://localhost', 'http://127.0.0.1']
+# CSRF_TRUSTED_ORIGINS = ['http://localhost', 'http://127.0.0.1']
 # Application definition
 
 INSTALLED_APPS = [
@@ -160,3 +160,5 @@ MEDIA_ROOT = '/media'
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
