@@ -13,8 +13,7 @@ SECRET_KEY = os.getenv('DJANGO_KEY', 'django-insecure-v^b!p=l^d+cnpbc&!i68grvqzv
 # SECRET_KEY = 'django-insecure-2j99suftfjc&$dq)h))z^xfj#e6yor8+@v!hs^yu$h^d3iu-vx'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-# DEBUG = os.getenv('DEBUG') == 'True'
-DEBUG = True
+DEBUG = os.getenv('DEBUG') == 'True'
 
 ALLOWED_HOSTS = ['127.0.0.1', 'localhost', '130.193.55.60', 'foodgramophone.hopto.org']
 
@@ -68,9 +67,9 @@ TEMPLATES = [
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework.authentication.TokenAuthentication',
-        'rest_framework.authentication.BasicAuthentication',
+        # 'rest_framework.authentication.BasicAuthentication',
         # 'rest_framework.authentication.CSRFCheckSessionAuthentication',
-        'rest_framework.authentication.SessionAuthentication',
+        # 'rest_framework.authentication.SessionAuthentication',
     ],
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.IsAuthenticatedOrReadOnly',
