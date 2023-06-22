@@ -88,7 +88,7 @@ class FavouriteRecipeSerializer(serializers.ModelSerializer):
 
     def validate(self, data):
         """Вызов валидирующей функции и возврат валидированных данных."""
-        # Если помещать все в одну функцию она получается слишком сложной.
+
         user = self.context.get('request').user
         recipe = self.instance
 
@@ -163,8 +163,7 @@ class RecipeWriteSerializer(serializers.ModelSerializer):
         """Валидация ингредиентов."""
         if not data:
             raise ValidationError('Отсутствуют ингредиенты.')
-        used_ingredients = set()  # Сначала неправильно понял.
-        # Комментарий удалю само-собой.
+        used_ingredients = set()
         for ingredient in data:
             if int(ingredient['amount']) < 1:
                 raise ValidationError(

@@ -38,12 +38,6 @@ class TagAdmin(admin.ModelAdmin):
     list_display = ('name', 'color', 'slug')
 
 
-# class FollowAdmin(admin.ModelAdmin):
-#     list_display = ('pk', 'user', 'following')
-#     search_fields = ('user__username', 'following__username')
-#     list_filter = ('user__username', 'following__username')
-
-
 class FavouritesAdmin(admin.ModelAdmin):
     list_display = ('pk', 'recipe', 'user')
     search_fields = ('user__username', 'recipe__name')
@@ -60,6 +54,5 @@ admin.site.register(Ingredient, IngredientAdmin)
 admin.site.register(IngredientAmount, IngredientAmountAdmin)
 admin.site.register(Recipe, RecipeAdmin)
 admin.site.register(Tag, TagAdmin)
-# admin.site.register(Follow, FollowAdmin)
 admin.site.register(Favourites, FavouritesAdmin)
 admin.site.register(ShoppingCart, ShoppingCartAdmin)
