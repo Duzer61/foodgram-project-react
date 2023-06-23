@@ -1,6 +1,13 @@
 
 # Проект "Foodgram" - продуктовый помощник.
 
+## Информация для ревью:
+**Адрес проекта - https://foodgramophone.hopto.org
+Администратор:
+login - admin
+password - mypass2023**
+
+## 
 Проект "Foodgram" предназначен для публикации рецептов приготовления различных блюд. "Foodgram" создан в качестве выпускного проекта курса [Python-разработчик](https://practicum.yandex.ru/backend-developer/) от [Яндекс.Практикум.](https://practicum.yandex.ru/)
 
 ### В проекте пользователи могут:
