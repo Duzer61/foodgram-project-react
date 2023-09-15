@@ -39,7 +39,7 @@ class Command(BaseCommand):
                 f'Ошибки: {err} строк.')
 
     def handle(self, *args, **options):
-        print("Идет загрузка данных...")
+        print("Идет загрузка данных.")
         for сf in csv_files:
             self.csv_loader(сf)
         print('Загрука завершена.')
