@@ -79,5 +79,5 @@
 
 
 ## Автор
-Данил Кочетов - [GitHub](https://github.com/Duzer61)
+Данил Кочетов -  [GitHub](https://github.com/Duzer61)
 Некоторое время рабочий проект будет размещен на https://foodgramophone.hopto.org
